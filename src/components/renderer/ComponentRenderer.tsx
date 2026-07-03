@@ -24,6 +24,7 @@ interface ComponentRendererProps {
   component: CircuitComponent;
   selected?: boolean;
   hovered?: boolean;
+  highlighted?: boolean;
   onSelect?: () => void;
   onHover?: (hovered: boolean) => void;
 }
@@ -32,6 +33,7 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = React.memo(({
   component,
   selected,
   hovered,
+  highlighted,
   onSelect,
   onHover,
 }) => {
@@ -135,9 +137,26 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = React.memo(({
     COMPONENT_DIMENSIONS[normType]?.width / 2 || 40
   }, ${COMPONENT_DIMENSIONS[normType]?.height / 2 || 25})`;
 
+  const w = COMPONENT_DIMENSIONS[normType]?.width || 80;
+  const h = COMPONENT_DIMENSIONS[normType]?.height || 50;
+
   return (
     <g transform={transform} {...gProps}>
       {getSymbol()}
+      {highlighted && (
+        <rect
+          x="-4"
+          y="-4"
+          width={w + 8}
+          height={h + 8}
+          rx="6"
+          fill="none"
+          stroke="#a855f7"
+          strokeWidth="2.5"
+          strokeDasharray="4,4"
+          className="animate-pulse drop-shadow-[0_0_10px_rgba(168,85,247,0.95)]"
+        />
+      )}
     </g>
   );
 });
