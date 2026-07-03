@@ -214,54 +214,63 @@ async function callGateway(messages: Array<{ role: string; content: string }>) {
   const lovableKey = process.env.LOVABLE_API_KEY;
 
   if (geminiKey) {
-    const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent";
-    const systemInstruction = messages.find(m => m.role === "system")?.content || SYSTEM_PROMPT;
-    const contents = messages
-      .filter(m => m.role !== "system")
-      .map(m => ({
-        role: m.role === "assistant" ? "model" : "user",
-        parts: [{ text: m.content }],
-      }));
+    const models = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash", "gemini-flash-latest"];
+    let lastError: any = null;
 
-    try {
-      const res = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-goog-api-key": geminiKey,
-        },
-        body: JSON.stringify({
-          contents,
-          systemInstruction: {
-            parts: [{ text: systemInstruction }],
+    for (const model of models) {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+      const systemInstruction = messages.find(m => m.role === "system")?.content || SYSTEM_PROMPT;
+      const contents = messages
+        .filter(m => m.role !== "system")
+        .map(m => ({
+          role: m.role === "assistant" ? "model" : "user",
+          parts: [{ text: m.content }],
+        }));
+
+      try {
+        console.log(`Attempting Gemini generation using model: ${model}...`);
+        const res = await fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-goog-api-key": geminiKey,
           },
-        }),
-      });
+          body: JSON.stringify({
+            contents,
+            systemInstruction: {
+              parts: [{ text: systemInstruction }],
+            },
+          }),
+        });
 
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(`Gemini API failed (${res.status}): ${text.slice(0, 200)}`);
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(`Gemini API failed (${res.status}): ${text.slice(0, 200)}`);
+        }
+
+        const data = (await res.json()) as {
+          candidates?: Array<{
+            content?: {
+              parts?: Array<{ text?: string }>;
+            };
+          }>;
+        };
+
+        const reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (reply) return reply;
+        throw new Error("No text response returned from Gemini API");
+      } catch (e: any) {
+        console.warn(`Gemini API call failed for model ${model}:`, e.message || e);
+        lastError = e;
       }
-
-      const data = (await res.json()) as {
-        candidates?: Array<{
-          content?: {
-            parts?: Array<{ text?: string }>;
-          };
-        }>;
-      };
-
-      const reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
-      if (reply) return reply;
-      throw new Error("No text response returned from Gemini API");
-    } catch (e) {
-      console.error("Gemini API call failed, falling back to mock:", e);
-      const isDev = process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test" || !process.env.NODE_ENV;
-      if (isDev) {
-        return simulateMockResponse(messages);
-      }
-      throw e;
     }
+
+    console.error("All Gemini API models failed. Falling back to mock in dev or throwing:", lastError);
+    const isDev = process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test" || !process.env.NODE_ENV;
+    if (isDev) {
+      return simulateMockResponse(messages);
+    }
+    throw lastError || new Error("All Gemini API model attempts failed.");
   }
 
   // Fallback to OpenAI or Lovable API Gateway
