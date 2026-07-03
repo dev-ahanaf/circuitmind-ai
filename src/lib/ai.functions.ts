@@ -211,7 +211,6 @@ Here is a mock response to your message: *"I received your message: '${lastUserM
 async function callGateway(messages: Array<{ role: string; content: string }>) {
   const geminiKey = process.env.GEMINI_API_KEY;
   const openaiKey = process.env.OPENAI_API_KEY;
-  const lovableKey = process.env.LOVABLE_API_KEY;
 
   if (geminiKey) {
     const models = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash", "gemini-flash-latest"];
@@ -273,7 +272,7 @@ async function callGateway(messages: Array<{ role: string; content: string }>) {
     throw lastError || new Error("All Gemini API model attempts failed.");
   }
 
-  // Fallback to OpenAI or Lovable API Gateway
+  // Fallback to OpenAI API Gateway
   let url = "";
   let key = "";
   let model = "";
@@ -282,10 +281,6 @@ async function callGateway(messages: Array<{ role: string; content: string }>) {
     url = "https://api.openai.com/v1/chat/completions";
     key = openaiKey;
     model = "gpt-4o-mini";
-  } else if (lovableKey) {
-    url = "https://ai.gateway.lovable.dev/v1/chat/completions";
-    key = lovableKey;
-    model = CHAT_MODEL;
   }
 
   if (!key) {
@@ -294,7 +289,7 @@ async function callGateway(messages: Array<{ role: string; content: string }>) {
       return simulateMockResponse(messages);
     }
     throw new Error(
-      "Missing AI API Key. Please set GEMINI_API_KEY, OPENAI_API_KEY, or LOVABLE_API_KEY in your environment."
+      "Missing AI API Key. Please set GEMINI_API_KEY or OPENAI_API_KEY in your environment."
     );
   }
 
