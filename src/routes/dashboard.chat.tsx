@@ -6,6 +6,16 @@ import { QUICK_PROMPTS } from "@/lib/components-data";
 import { Bot, Loader2, Send, Sparkles, User as UserIcon, Plus, Download } from "lucide-react";
 import { motion } from "framer-motion";
 import { exportMarkdownToPDF } from "@/lib/utils";
+import { CircuitRenderer } from "@/components/CircuitRenderer/CircuitRenderer";
+import { parseMarkdownSections } from "@/utils/parser";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+
+function stripJsonBlock(markdown: string): string {
+  if (!markdown) return "";
+  let result = markdown.replace(/```json[\s\S]*?```/g, "");
+  result = result.replace(/^(?:##?|###?)\s+(?:Circuit|Schematic)\s+JSON\s*$/gim, "");
+  return result.trim();
+}
 
 export const Route = createFileRoute("/dashboard/chat")({
   component: ChatPage,
@@ -113,14 +123,17 @@ function ChatPage() {
             </div>
           </div>
         ) : (
-          <div className="mx-auto max-w-3xl space-y-6 px-6 py-8">
-            {messages.map((m, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="flex gap-3"
-              >
+          <div className="mx-auto max-w-3xl lg:max-w-5xl space-y-6 px-6 py-8 w-full">
+            {messages.map((m, i) => {
+              const parsed = m.role === "assistant" ? parseMarkdownSections(m.content) : null;
+              const hasJson = !!(parsed && parsed.circuitJson);
+              return (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className={`flex gap-3 w-full ${hasJson ? "" : "max-w-3xl mx-auto"}`}
+                >
                 <div
                   className={`mt-1 grid size-8 shrink-0 place-items-center rounded-lg ${
                     m.role === "user" ? "bg-secondary" : "bg-gradient-brand text-white"
@@ -135,15 +148,73 @@ function ChatPage() {
                   {m.role === "user" ? (
                     <div className="rounded-xl bg-secondary/50 px-4 py-3 text-sm">{m.content}</div>
                   ) : (
-                    <div className="glass rounded-xl px-4 py-3">
-                      <Markdown content={m.content} />
-                    </div>
+                    (() => {
+                      if (parsed && parsed.circuitJson) {
+                        return (
+                          <div className="glass rounded-xl p-5 w-full space-y-4 overflow-hidden">
+                            <Tabs defaultValue="diagram" className="w-full">
+                              <TabsList className="flex flex-wrap h-auto gap-1 bg-muted/50 p-1 mb-4 rounded-lg">
+                                <TabsTrigger value="diagram" className="bg-gradient-brand/5 hover:bg-gradient-brand/10 data-[state=active]:bg-gradient-brand data-[state=active]:text-white">
+                                  Interactive Circuit Diagram
+                                </TabsTrigger>
+                                <TabsTrigger value="overview">Overview</TabsTrigger>
+                                <TabsTrigger value="components">Components</TabsTrigger>
+                                <TabsTrigger value="wiring">Wiring</TabsTrigger>
+                                <TabsTrigger value="code">Arduino Code</TabsTrigger>
+                                <TabsTrigger value="explanation">Explanation</TabsTrigger>
+                                <TabsTrigger value="troubleshooting">Troubleshooting</TabsTrigger>
+                              </TabsList>
+
+                              <TabsContent value="diagram" className="mt-0">
+                                <CircuitRenderer data={parsed.circuitJson} />
+                              </TabsContent>
+                              <TabsContent value="overview" className="mt-0">
+                                <div className="prose max-w-none dark:prose-invert">
+                                  <Markdown content={stripJsonBlock(parsed.overview) || "_No overview generated._"} />
+                                </div>
+                              </TabsContent>
+                              <TabsContent value="components" className="mt-0">
+                                <div className="prose max-w-none dark:prose-invert">
+                                  <Markdown content={stripJsonBlock(parsed.components) || "_No component list generated._"} />
+                                </div>
+                              </TabsContent>
+                              <TabsContent value="wiring" className="mt-0">
+                                <div className="prose max-w-none dark:prose-invert">
+                                  <Markdown content={stripJsonBlock(parsed.wiring) || "_No wiring connections generated._"} />
+                                </div>
+                              </TabsContent>
+                              <TabsContent value="code" className="mt-0">
+                                <div className="prose max-w-none dark:prose-invert">
+                                  <Markdown content={stripJsonBlock(parsed.code) || "_No code generated._"} />
+                                </div>
+                              </TabsContent>
+                              <TabsContent value="explanation" className="mt-0">
+                                <div className="prose max-w-none dark:prose-invert">
+                                  <Markdown content={stripJsonBlock(parsed.explanation) || "_No explanation generated._"} />
+                                </div>
+                              </TabsContent>
+                              <TabsContent value="troubleshooting" className="mt-0">
+                                <div className="prose max-w-none dark:prose-invert">
+                                  <Markdown content={stripJsonBlock(parsed.troubleshooting) || "_No troubleshooting steps generated._"} />
+                                </div>
+                              </TabsContent>
+                            </Tabs>
+                          </div>
+                        );
+                      }
+
+                      return (
+                        <div className="glass rounded-xl px-4 py-3">
+                          <Markdown content={m.content} />
+                        </div>
+                      );
+                    })()
                   )}
                 </div>
               </motion.div>
-            ))}
+            )})}
             {loading && (
-              <div className="flex gap-3">
+              <div className="flex gap-3 max-w-3xl mx-auto w-full">
                 <div className="mt-1 grid size-8 shrink-0 place-items-center rounded-lg bg-gradient-brand text-white">
                   <Bot className="size-4" />
                 </div>

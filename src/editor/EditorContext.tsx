@@ -4,7 +4,7 @@ import { type CircuitConnection as Connection } from "@/types/Connection";
 import { type Circuit } from "@/types/Circuit";
 import { type ToolMode, type Point, type ViewportState, type HistoryItem } from "./types";
 import { snapToGrid } from "@/utils/grid";
-import { normalizeType, COMPONENT_DIMENSIONS } from "@/components/renderer/PinMap";
+import { normalizeType, COMPONENT_DIMENSIONS } from "@/components/CircuitRenderer/PinMap";
 
 interface EditorContextProps {
   // Data State

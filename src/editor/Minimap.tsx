@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from "react";
 import { useEditor } from "./EditorContext";
-import { normalizeType, COMPONENT_DIMENSIONS } from "@/components/renderer/PinMap";
+import { normalizeType, COMPONENT_DIMENSIONS } from "@/components/CircuitRenderer/PinMap";
 import { type Point } from "./types";
 
 export const Minimap: React.FC = () => {

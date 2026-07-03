@@ -1,4 +1,4 @@
-import { getPinConfig, COMPONENT_DIMENSIONS, normalizeType } from "@/components/renderer/PinMap";
+import { getPinConfig, COMPONENT_DIMENSIONS, normalizeType } from "@/components/CircuitRenderer/PinMap";
 import { rotatePoint, rotateDirection } from "./geometry";
 import { type CircuitComponent } from "@/types/Component";
 

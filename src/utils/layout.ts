@@ -1,4 +1,4 @@
-import { normalizeType } from "@/components/renderer/PinMap";
+import { normalizeType } from "@/components/CircuitRenderer/PinMap";
 import { type CircuitComponent } from "@/types/Component";
 import { snapToGrid } from "./grid";
 

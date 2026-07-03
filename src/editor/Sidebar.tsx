@@ -1,6 +1,6 @@
 import React from "react";
 import { useEditor } from "./EditorContext";
-import { normalizeType, COMPONENT_DIMENSIONS, getPinConfig } from "@/components/renderer/PinMap";
+import { normalizeType, COMPONENT_DIMENSIONS, getPinConfig } from "@/components/CircuitRenderer/PinMap";
 import { X, Search, Info, Link, HelpCircle } from "lucide-react";
 import { routeWire } from "@/utils/wireRouting";
 

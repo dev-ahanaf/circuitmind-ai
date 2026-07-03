@@ -4,7 +4,7 @@ import { generateCircuit } from "@/lib/ai.functions";
 import { Markdown } from "@/components/markdown";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { parseMarkdownSections } from "@/utils/parser";
-import { CircuitRenderer } from "@/components/renderer/CircuitRenderer";
+import { CircuitRenderer } from "@/components/CircuitRenderer/CircuitRenderer";
 import { Cable, Loader2, Sparkles, Download, Info } from "lucide-react";
 import { exportMarkdownToPDF } from "@/lib/utils";
 

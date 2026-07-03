@@ -1,11 +1,11 @@
 import React, { useRef, useState, useEffect } from "react";
 import { useEditor } from "./EditorContext";
-import { ComponentRenderer } from "@/components/renderer/ComponentRenderer";
-import { WireRenderer } from "@/components/renderer/WireRenderer";
-import { ConnectionRenderer } from "@/components/renderer/ConnectionRenderer";
-import { LabelRenderer } from "@/components/renderer/LabelRenderer";
+import { ComponentRenderer } from "@/components/CircuitRenderer/ComponentRenderer";
+import { WireRenderer } from "@/components/CircuitRenderer/WireRenderer";
+import { ConnectionRenderer } from "@/components/CircuitRenderer/ConnectionRenderer";
+import { LabelRenderer } from "@/components/CircuitRenderer/LabelRenderer";
 import { snapToGrid } from "@/utils/grid";
-import { normalizeType, COMPONENT_DIMENSIONS } from "@/components/renderer/PinMap";
+import { normalizeType, COMPONENT_DIMENSIONS } from "@/components/CircuitRenderer/PinMap";
 import { useKeyboardShortcuts } from "./hooks";
 import { Minimap } from "./Minimap";
 import { type DragSelectionBox, type Point } from "./types";

@@ -7,7 +7,7 @@ import { ArrowLeft, Sparkles, Loader2, Download, Info } from "lucide-react";
 import { exportMarkdownToPDF } from "@/lib/utils";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { parseMarkdownSections } from "@/utils/parser";
-import { CircuitRenderer } from "@/components/renderer/CircuitRenderer";
+import { CircuitRenderer } from "@/components/CircuitRenderer/CircuitRenderer";
 
 export const Route = createFileRoute("/dashboard/templates/$id")({
   loader: ({ params }) => {
