@@ -42,14 +42,17 @@ export function autoLayout(components: any[]): CircuitComponent[] {
   const passives: any[] = [];
   const sensorsInputs: any[] = [];
   const actuatorsOutputs: any[] = [];
-  const powerGround: any[] = [];
+  const powerSupply: any[] = [];
+  const grounds: any[] = [];
 
   snappedComponents.forEach((c) => {
     const norm = normalizeType(c.type).toLowerCase();
     if (norm.includes("arduino") || norm.includes("esp32") || norm.includes("esp8266")) {
       controller = c;
-    } else if (norm.includes("ground") || norm.includes("battery") || norm.includes("power supply")) {
-      powerGround.push(c);
+    } else if (norm.includes("ground")) {
+      grounds.push(c);
+    } else if (norm.includes("battery") || norm.includes("power supply")) {
+      powerSupply.push(c);
     } else if (
       norm.includes("sensor") ||
       norm.includes("ldr") ||
@@ -75,62 +78,68 @@ export function autoLayout(components: any[]): CircuitComponent[] {
 
   const layouted: CircuitComponent[] = [];
 
-  // 1. Center the Controller
-  const controllerX = 300;
-  const controllerY = 200;
+  // 1. Position Controller in the center
+  const controllerX = 320;
+  const controllerY = 180;
   if (controller) {
     controller.x = controllerX;
     controller.y = controllerY;
     layouted.push(controller);
   }
 
-  // 2. Position Sensors / Inputs on the Left Column (snapped to 20px grid)
-  const sensorX = 60;
-  let sensorY = 80;
+  // 2. Position Power Supply / Batteries on the Left Column
+  const powerX = 80;
+  let powerY = 180;
+  powerSupply.forEach((p) => {
+    p.x = powerX;
+    p.y = powerY;
+    p.rotation = 0;
+    layouted.push(p);
+    powerY += 120;
+  });
+
+  // 3. Position Sensors / Inputs along the Top Row (distributed horizontally)
+  let sensorX = 200;
+  const sensorY = 40;
   sensorsInputs.forEach((s) => {
     s.x = sensorX;
     s.y = sensorY;
     s.rotation = 0;
     layouted.push(s);
-    sensorY += 140;
+    sensorX += 160;
   });
 
-  // 3. Position Actuators / Outputs on the Right Column (snapped to 20px grid)
-  const outputX = 660;
+  // 4. Position Actuators / Outputs on the Right Column (distributed vertically)
+  const outputX = 680;
   let outputY = 80;
   actuatorsOutputs.forEach((a) => {
     a.x = outputX;
     a.y = outputY;
     a.rotation = 0;
     layouted.push(a);
-    outputY += 160;
+    outputY += 140;
   });
 
-  // 4. Position Passives in middle buffers
-  const passiveX = 460;
-  let passiveY = 380;
+  // 5. Position Grounds at the Bottom
+  let gndX = controllerX + 40;
+  const gndY = 440;
+  grounds.forEach((g) => {
+    g.x = gndX;
+    g.y = gndY;
+    g.rotation = 0;
+    layouted.push(g);
+    gndX += 100;
+  });
+
+  // 6. Position Passives (resistors, capacitors) in the intermediate channel
+  const passiveX = 520;
+  let passiveY = 120;
   passives.forEach((p, idx) => {
-    p.x = passiveX + (idx % 2) * 120;
-    p.y = passiveY + Math.floor(idx / 2) * 100;
-    p.rotation = (idx % 2) * 90; // Alternate rotations (0, 90) for clean wiring!
+    p.x = passiveX + (idx % 2) * 60;
+    p.y = passiveY;
+    p.rotation = 90; // Default vertical for schematic lines
     layouted.push(p);
-  });
-
-  // 5. Position Power & Grounds
-  let pwrX = 260;
-  const pwrY = 460;
-  powerGround.forEach((pg) => {
-    const norm = normalizeType(pg.type).toLowerCase();
-    if (norm.includes("ground")) {
-      pg.x = controllerX + 40;
-      pg.y = 480;
-    } else {
-      pg.x = pwrX;
-      pg.y = pwrY;
-      pwrX += 120;
-    }
-    pg.rotation = 0;
-    layouted.push(pg);
+    passiveY += 100;
   });
 
   // Fallback
