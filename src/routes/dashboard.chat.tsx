@@ -48,7 +48,7 @@ function ChatPage() {
         {
           role: "assistant",
           content:
-            "⚠️ I couldn't reach the AI service. Please make sure your API key (GEMINI_API_KEY or OPENAI_API_KEY) is correctly configured in your .env file.\n\n_Error: " +
+            "⚠️ I couldn't reach the AI service. Please make sure your API key (GEMINI_API_KEY, OPENAI_API_KEY, or GROQ_API_KEY) is correctly configured in your .env file.\n\n_Error: " +
             (err as Error).message +
             "_",
         },

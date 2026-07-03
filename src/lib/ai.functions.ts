@@ -211,21 +211,23 @@ Here is a mock response to your message: *"I received your message: '${lastUserM
 async function callGateway(messages: Array<{ role: string; content: string }>) {
   const geminiKey = process.env.GEMINI_API_KEY;
   const openaiKey = process.env.OPENAI_API_KEY;
+  const groqKey = process.env.GROQ_API_KEY;
 
+  let lastError: any = null;
+
+  // 1. Try Gemini
   if (geminiKey) {
     const models = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash", "gemini-flash-latest"];
-    let lastError: any = null;
+    const systemInstruction = messages.find(m => m.role === "system")?.content || SYSTEM_PROMPT;
+    const contents = messages
+      .filter(m => m.role !== "system")
+      .map(m => ({
+        role: m.role === "assistant" ? "model" : "user",
+        parts: [{ text: m.content }],
+      }));
 
     for (const model of models) {
       const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
-      const systemInstruction = messages.find(m => m.role === "system")?.content || SYSTEM_PROMPT;
-      const contents = messages
-        .filter(m => m.role !== "system")
-        .map(m => ({
-          role: m.role === "assistant" ? "model" : "user",
-          parts: [{ text: m.content }],
-        }));
-
       try {
         console.log(`Attempting Gemini generation using model: ${model}...`);
         const res = await fetch(url, {
@@ -236,84 +238,102 @@ async function callGateway(messages: Array<{ role: string; content: string }>) {
           },
           body: JSON.stringify({
             contents,
-            systemInstruction: {
-              parts: [{ text: systemInstruction }],
-            },
+            systemInstruction: { parts: [{ text: systemInstruction }] },
           }),
         });
 
-        if (!res.ok) {
+        if (res.ok) {
+          const data = (await res.json()) as {
+            candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+          };
+          const reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (reply) return reply;
+        } else {
           const text = await res.text();
-          throw new Error(`Gemini API failed (${res.status}): ${text.slice(0, 200)}`);
+          console.warn(`Gemini model ${model} failed: ${text.slice(0, 200)}`);
+          lastError = new Error(`Gemini API failed (${res.status}): ${text.slice(0, 200)}`);
         }
-
-        const data = (await res.json()) as {
-          candidates?: Array<{
-            content?: {
-              parts?: Array<{ text?: string }>;
-            };
-          }>;
-        };
-
-        const reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (reply) return reply;
-        throw new Error("No text response returned from Gemini API");
       } catch (e: any) {
         console.warn(`Gemini API call failed for model ${model}:`, e.message || e);
         lastError = e;
       }
     }
-
-    console.error("All Gemini API models failed. Falling back to mock in dev or throwing:", lastError);
-    const isDev = process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test" || !process.env.NODE_ENV;
-    if (isDev) {
-      return simulateMockResponse(messages);
-    }
-    throw lastError || new Error("All Gemini API model attempts failed.");
   }
 
-  // Fallback to OpenAI API Gateway
-  let url = "";
-  let key = "";
-  let model = "";
-
+  // 2. Try OpenAI
   if (openaiKey) {
-    url = "https://api.openai.com/v1/chat/completions";
-    key = openaiKey;
-    model = "gpt-4o-mini";
-  }
+    try {
+      console.log("Attempting OpenAI generation...");
+      const res = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${openaiKey}`,
+        },
+        body: JSON.stringify({
+          model: "gpt-4o-mini",
+          messages,
+        }),
+      });
 
-  if (!key) {
-    const isDev = process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test" || !process.env.NODE_ENV;
-    if (isDev) {
-      return simulateMockResponse(messages);
+      if (res.ok) {
+        const data = (await res.json()) as {
+          choices?: Array<{ message?: { content?: string } }>;
+        };
+        const reply = data.choices?.[0]?.message?.content;
+        if (reply) return reply;
+      } else {
+        const text = await res.text();
+        console.warn(`OpenAI failed: ${text.slice(0, 200)}`);
+        lastError = new Error(`OpenAI API failed (${res.status}): ${text.slice(0, 200)}`);
+      }
+    } catch (e: any) {
+      console.warn("OpenAI API call failed:", e.message || e);
+      lastError = e;
     }
-    throw new Error(
-      "Missing AI API Key. Please set GEMINI_API_KEY or OPENAI_API_KEY in your environment."
-    );
   }
 
-  const res = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${key}`,
-    },
-    body: JSON.stringify({
-      model,
-      messages,
-    }),
-  });
-  if (!res.ok) {
-    const text = await res.text();
-    if (res.status === 429) throw new Error("Rate limited. Please wait a moment and try again.");
-    if (res.status === 402) throw new Error("AI credits exhausted. Please check your API key account balance.");
-    throw new Error(`AI request failed (${res.status}): ${text.slice(0, 200)}`);
+  // 3. Try Groq
+  if (groqKey) {
+    try {
+      console.log("Attempting Groq generation...");
+      const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${groqKey}`,
+        },
+        body: JSON.stringify({
+          model: "llama-3.3-70b-versatile",
+          messages,
+        }),
+      });
+
+      if (res.ok) {
+        const data = (await res.json()) as {
+          choices?: Array<{ message?: { content?: string } }>;
+        };
+        const reply = data.choices?.[0]?.message?.content;
+        if (reply) return reply;
+      } else {
+        const text = await res.text();
+        console.warn(`Groq failed: ${text.slice(0, 200)}`);
+        lastError = new Error(`Groq API failed (${res.status}): ${text.slice(0, 200)}`);
+      }
+    } catch (e: any) {
+      console.warn("Groq API call failed:", e.message || e);
+      lastError = e;
+    }
   }
-  const data = (await res.json()) as {
-    choices?: Array<{ message?: { content?: string } }>;
-  };
-  return data.choices?.[0]?.message?.content ?? "";
+
+  // 4. Fallback in development or throw
+  const isDev = process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test" || !process.env.NODE_ENV;
+  if (isDev) {
+    console.log("No API calls succeeded or no keys configured. Returning mock response in dev.");
+    return simulateMockResponse(messages);
+  }
+
+  throw lastError || new Error("Missing AI API Key. Please set GEMINI_API_KEY, OPENAI_API_KEY, or GROQ_API_KEY in your environment.");
 }
 
 export const chatCompletion = createServerFn({ method: "POST" })
