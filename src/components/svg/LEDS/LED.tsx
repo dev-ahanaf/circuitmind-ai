@@ -1,19 +1,5 @@
 import React from "react";
-
-interface SymbolProps {
-  id: string;
-  label?: string;
-  value?: string;
-  selected?: boolean;
-  hovered?: boolean;
-  onSelect?: () => void;
-}
-
-// LED: Diode triangle with cathode bar and outward light arrows
-export const LEDPins = {
-  "anode": { x: 10, y: 25, direction: "left" },
-  "cathode": { x: 70, y: 25, direction: "right" },
-} as const;
+import { SymbolProps } from "../ArduinoUno/ArduinoTypes";
 
 export const LED: React.FC<SymbolProps & { color?: string }> = ({ id, label, value, color, selected, hovered, onSelect }) => {
   return (
@@ -52,20 +38,11 @@ export const LED: React.FC<SymbolProps & { color?: string }> = ({ id, label, val
   );
 };
 
-// RGB LED: Multi-terminal LED with R, G, B pins and Common Cathode
-export const RGBLEDPins = {
-  "red": { x: 15, y: 55, direction: "bottom" },
-  "green": { x: 30, y: 55, direction: "bottom" },
-  "blue": { x: 45, y: 55, direction: "bottom" },
-  "cathode": { x: 30, y: 10, direction: "top" },
-} as const;
-
 export const RGBLED: React.FC<SymbolProps> = ({ id, label, selected, hovered, onSelect }) => {
   return (
     <g onClick={(e) => { e.stopPropagation(); onSelect?.(); }} className="cursor-pointer select-none">
       <rect x="5" y="5" width="50" height="55" rx="4" className="fill-transparent stroke-none" />
       
-      {/* Inner LED representation */}
       <circle
         cx="30"
         cy="30"
@@ -73,18 +50,15 @@ export const RGBLED: React.FC<SymbolProps> = ({ id, label, selected, hovered, on
         className={`fill-card stroke-2 ${selected ? "stroke-brand drop-shadow-[0_0_8px_rgba(168,85,247,0.5)]" : hovered ? "stroke-brand/60" : "stroke-border"}`}
       />
       
-      {/* Color Indicators inside circle */}
       <circle cx="23" cy="30" r="3" className="fill-red-500 stroke-none" />
       <circle cx="30" cy="30" r="3" className="fill-green-500 stroke-none" />
       <circle cx="37" cy="30" r="3" className="fill-blue-500 stroke-none" />
 
-      {/* Wire Leads */}
       <line x1="30" y1="10" x2="30" y2="14" className="stroke-muted-foreground stroke-[1.5]" />
       <line x1="15" y1="46" x2="15" y2="55" className="stroke-muted-foreground stroke-[1.5]" />
       <line x1="30" y1="46" x2="30" y2="55" className="stroke-muted-foreground stroke-[1.5]" />
       <line x1="45" y1="46" x2="45" y2="55" className="stroke-muted-foreground stroke-[1.5]" />
 
-      {/* Connection dots */}
       <circle cx="30" cy="10" r="2.5" className="fill-card stroke-muted-foreground stroke-1" />
       <circle cx="15" cy="55" r="2.5" className="fill-card stroke-muted-foreground stroke-1" />
       <circle cx="30" cy="55" r="2.5" className="fill-card stroke-muted-foreground stroke-1" />
@@ -96,12 +70,6 @@ export const RGBLED: React.FC<SymbolProps> = ({ id, label, selected, hovered, on
     </g>
   );
 };
-
-// Diode / Zener Diode
-export const DiodePins = {
-  "anode": { x: 10, y: 25, direction: "left" },
-  "cathode": { x: 70, y: 25, direction: "right" },
-} as const;
 
 export const Diode: React.FC<SymbolProps & { zener?: boolean }> = ({ id, label, zener, selected, hovered, onSelect }) => {
   return (
@@ -140,3 +108,4 @@ export const Diode: React.FC<SymbolProps & { zener?: boolean }> = ({ id, label, 
     </g>
   );
 };
+

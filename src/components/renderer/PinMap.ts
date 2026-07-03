@@ -1,11 +1,58 @@
-import { ArduinoUnoPins } from "../svg/ArduinoUno";
+// Inline pins for components moved to folders
+export const ArduinoUnoPins = {
+  "5v": { x: 80, y: 180, direction: "bottom" },
+  "3.3v": { x: 70, y: 180, direction: "bottom" },
+  "gnd": { x: 90, y: 180, direction: "bottom" },
+  "gnd2": { x: 100, y: 180, direction: "bottom" },
+  "vin": { x: 110, y: 180, direction: "bottom" },
+  "a0": { x: 140, y: 180, direction: "bottom" },
+  "a1": { x: 150, y: 180, direction: "bottom" },
+  "a2": { x: 160, y: 180, direction: "bottom" },
+  "a3": { x: 170, y: 180, direction: "bottom" },
+  "a4": { x: 180, y: 180, direction: "bottom" },
+  "a5": { x: 190, y: 180, direction: "bottom" },
+  "d0": { x: 260, y: 0, direction: "top" },
+  "d1": { x: 250, y: 0, direction: "top" },
+  "d2": { x: 240, y: 0, direction: "top" },
+  "d3": { x: 230, y: 0, direction: "top" },
+  "d4": { x: 220, y: 0, direction: "top" },
+  "d5": { x: 210, y: 0, direction: "top" },
+  "d6": { x: 200, y: 0, direction: "top" },
+  "d7": { x: 190, y: 0, direction: "top" },
+  "d8": { x: 170, y: 0, direction: "top" },
+  "d9": { x: 160, y: 0, direction: "top" },
+  "d10": { x: 150, y: 0, direction: "top" },
+  "d11": { x: 140, y: 0, direction: "top" },
+  "d12": { x: 130, y: 0, direction: "top" },
+  "d13": { x: 120, y: 0, direction: "top" },
+  "gnd3": { x: 110, y: 0, direction: "top" },
+  "aref": { x: 100, y: 0, direction: "top" },
+  "sda": { x: 90, y: 0, direction: "top" },
+  "scl": { x: 80, y: 0, direction: "top" }
+} as const;
+
+export const ResistorPins = { "left": { x: 10, y: 25, direction: "left" }, "right": { x: 90, y: 25, direction: "right" } } as const;
+export const CapacitorPins = { "positive": { x: 10, y: 25, direction: "left" }, "negative": { x: 70, y: 25, direction: "right" } } as const;
+export const PotentiometerPins = { "vcc": { x: 10, y: 40, direction: "left" }, "out": { x: 50, y: 10, direction: "top" }, "gnd": { x: 90, y: 40, direction: "right" } } as const;
+export const LEDPins = { "anode": { x: 10, y: 25, direction: "left" }, "cathode": { x: 70, y: 25, direction: "right" } } as const;
+export const RGBLEDPins = { "r": { x: 15, y: 60, direction: "bottom" }, "g": { x: 25, y: 60, direction: "bottom" }, "b": { x: 35, y: 60, direction: "bottom" }, "gnd": { x: 45, y: 60, direction: "bottom" } } as const;
+export const DiodePins = { "anode": { x: 10, y: 25, direction: "left" }, "cathode": { x: 70, y: 25, direction: "right" } } as const;
+export const BatteryPins = { "positive": { x: 10, y: 25, direction: "left" }, "negative": { x: 70, y: 25, direction: "right" } } as const;
+export const Battery9VPins = { "positive": { x: 25, y: 15, direction: "top" }, "negative": { x: 50, y: 15, direction: "top" } } as const;
+export const PowerSupplyPins = { "positive": { x: 10, y: 25, direction: "left" }, "negative": { x: 70, y: 25, direction: "right" } } as const;
+export const GroundPins = { "gnd": { x: 20, y: 10, direction: "top" } } as const;
+export const DCMotorPins = { "positive": { x: 10, y: 25, direction: "left" }, "negative": { x: 70, y: 25, direction: "right" } } as const;
+export const StepperMotorPins = { "in1": { x: 15, y: 60, direction: "bottom" }, "in2": { x: 25, y: 60, direction: "bottom" }, "in3": { x: 35, y: 60, direction: "bottom" }, "in4": { x: 45, y: 60, direction: "bottom" } } as const;
+export const MotorDriverPins = {
+  "ena": { x: 10, y: 120, direction: "bottom" }, "in1": { x: 30, y: 120, direction: "bottom" }, "in2": { x: 50, y: 120, direction: "bottom" },
+  "in3": { x: 70, y: 120, direction: "bottom" }, "in4": { x: 90, y: 120, direction: "bottom" }, "enb": { x: 110, y: 120, direction: "bottom" },
+  "out1": { x: 10, y: 20, direction: "left" }, "out2": { x: 10, y: 110, direction: "left" }, "out3": { x: 110, y: 20, direction: "right" }, "out4": { x: 110, y: 110, direction: "right" },
+  "vcc": { x: 30, y: 10, direction: "top" }, "gnd": { x: 60, y: 10, direction: "top" }, "5v": { x: 90, y: 10, direction: "top" }
+} as const;
+
 import { ESP32Pins, ArduinoNanoPins, ESP8266Pins } from "../svg/ESP32";
-import { ResistorPins, CapacitorPins, PotentiometerPins } from "../svg/Resistor";
-import { LEDPins, RGBLEDPins, DiodePins } from "../svg/LED";
-import { BatteryPins, Battery9VPins, PowerSupplyPins, GroundPins } from "../svg/Battery";
 import { SwitchPins, PushButtonPins } from "../svg/Switch";
 import { BuzzerPins, ServoPins, RelayPins } from "../svg/Buzzer";
-import { DCMotorPins, StepperMotorPins, MotorDriverPins } from "../svg/Motor";
 import { LDRPins, IRSensorPins, UltrasonicSensorPins, GasSensorPins } from "../svg/Sensor";
 import { TransistorPins, MOSFETPins } from "../svg/Transistor";
 import { LCD16x2Pins, OLEDPins } from "../svg/LCD16x2";

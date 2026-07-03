@@ -69,8 +69,9 @@ function DashboardLayout() {
   };
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (data.user) {
+    supabase.auth.getUser().then((res: any) => {
+      const data = res?.data;
+      if (data?.user) {
         setUser(data.user);
       } else {
         // Mock developer session for bypass mode

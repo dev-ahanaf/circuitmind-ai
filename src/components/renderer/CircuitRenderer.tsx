@@ -1,108 +1,139 @@
-import React, { useState, useRef, useEffect } from "react";
-import { autoLayout, type ComponentJSON, type ConnectionJSON, type CircuitJSON } from "@/utils/layout";
-import { normalizeType, COMPONENT_DIMENSIONS } from "./PinMap";
+import React, { useRef } from "react";
+import { type Circuit } from "@/types/Circuit";
+import { useZoom } from "../hooks/useZoom";
+import { usePan } from "../hooks/usePan";
+import { useCircuit } from "../hooks/useCircuit";
+import { ComponentRenderer } from "./ComponentRenderer";
 import { WireRenderer } from "./WireRenderer";
-import { ZoomIn, ZoomOut, Maximize2, Download, Printer, FileCode, X, Search, Info } from "lucide-react";
-import { ArduinoUno } from "../svg/ArduinoUno";
-import { ESP32, ArduinoNano, ESP8266 } from "../svg/ESP32";
-import { Resistor, Capacitor, Potentiometer } from "../svg/Resistor";
-import { LED, RGBLED, Diode } from "../svg/LED";
-import { Battery, Battery9V, PowerSupply, Ground } from "../svg/Battery";
-import { Switch, PushButton } from "../svg/Switch";
-import { Buzzer, Servo, Relay } from "../svg/Buzzer";
-import { DCMotor, StepperMotor, MotorDriver } from "../svg/Motor";
-import { LDR, IRSensor, UltrasonicSensor, GasSensor } from "../svg/Sensor";
-import { Transistor, MOSFET } from "../svg/Transistor";
-import { LCD16x2, OLED } from "../svg/LCD16x2";
-import { VoltageRegulator, LM358 } from "../svg/VoltageRegulator";
-import { LogicGate } from "../svg/LogicGate";
-import { Breadboard, BluetoothHC05, WiFiESP8266, BridgeRectifier, CrystalOscillator } from "../svg/Breadboard";
+import { LabelRenderer } from "./LabelRenderer";
+import { ConnectionRenderer } from "./ConnectionRenderer";
+import { snapToGrid } from "@/utils/grid";
+import { normalizeType, COMPONENT_DIMENSIONS, getPinConfig } from "./PinMap";
+import { ZoomIn, ZoomOut, Maximize2, Download, Printer, FileCode, X, Search, Info, RefreshCw, Layers, Crosshair } from "lucide-react";
 
 interface CircuitRendererProps {
-  data: CircuitJSON;
+  data: Circuit;
 }
 
 export const CircuitRenderer: React.FC<CircuitRendererProps> = ({ data }) => {
-  // Initialize coordinates using auto-layout
-  const [components, setComponents] = useState<ComponentJSON[]>([]);
-  const [selectedComp, setSelectedComp] = useState<ComponentJSON | null>(null);
-  const [hoveredWire, setHoveredWire] = useState<number | null>(null);
+  const {
+    zoom,
+    setZoom,
+    zoomIn,
+    zoomOut,
+    resetZoom,
+    handleWheelZoom,
+  } = useZoom(0.8);
 
-  // Zoom & Pan state
-  const [zoom, setZoom] = useState(0.85);
-  const [pan, setPan] = useState({ x: 80, y: 50 });
-  const [isPanning, setIsPanning] = useState(false);
-  const panStart = useRef({ x: 0, y: 0 });
+  const {
+    pan,
+    setPan,
+    isPanning,
+    startPan,
+    updatePan,
+    endPan,
+    resetPan,
+  } = usePan({ x: 80, y: 50 });
 
-  // Drag component state
-  const [draggingId, setDraggingId] = useState<string | null>(null);
-  const dragOffset = useRef({ x: 0, y: 0 });
+  const {
+    components,
+    setComponents,
+    selectedCompId,
+    setSelectedCompId,
+    hoveredCompId,
+    setHoveredCompId,
+    hoveredWireIdx,
+    setHoveredWireIdx,
+    updateComponentPosition,
+    rotateComponent,
+  } = useCircuit(data.components);
 
   const svgRef = useRef<SVGSVGElement | null>(null);
+  const dragStartOffset = useRef({ x: 0, y: 0 });
+  const [activeDragId, setActiveDragId] = React.useState<string | null>(null);
 
-  // Load components when data changes
-  useEffect(() => {
-    if (data && data.components) {
-      setComponents(autoLayout(JSON.parse(JSON.stringify(data.components))));
-    }
-  }, [data]);
-
-  // Handle canvas mouse down (Panning or dragging component)
-  const handleMouseDown = (e: React.MouseEvent<SVGSVGElement>) => {
-    if (e.button === 0 && !draggingId) {
-      // Left click on background: start panning
-      setIsPanning(true);
-      panStart.current = { x: e.clientX - pan.x, y: e.clientY - pan.y };
+  // Dragging event handlers snapped to 20px grid
+  const handleSvgMouseDown = (e: React.MouseEvent<SVGSVGElement>) => {
+    if (e.button === 0 && !activeDragId) {
+      startPan(e.clientX, e.clientY);
     }
   };
 
-  const handleMouseMove = (e: React.MouseEvent<SVGSVGElement>) => {
+  const handleSvgMouseMove = (e: React.MouseEvent<SVGSVGElement>) => {
     if (isPanning) {
-      setPan({
-        x: e.clientX - panStart.current.x,
-        y: e.clientY - panStart.current.y,
-      });
-    } else if (draggingId && svgRef.current) {
+      updatePan(e.clientX, e.clientY);
+    } else if (activeDragId && svgRef.current) {
       const rect = svgRef.current.getBoundingClientRect();
-      // Translate screen coordinates to zoom/pan adjusted SVG coordinates
-      const currentX = (e.clientX - rect.left - pan.x) / zoom - dragOffset.current.x;
-      const currentY = (e.clientY - rect.top - pan.y) / zoom - dragOffset.current.y;
-      
-      // Snap to 10px grid
-      const snappedX = Math.round(currentX / 10) * 10;
-      const snappedY = Math.round(currentY / 10) * 10;
+      const rawX = (e.clientX - rect.left - pan.x) / zoom - dragStartOffset.current.x;
+      const rawY = (e.clientY - rect.top - pan.y) / zoom - dragStartOffset.current.y;
 
-      setComponents((prev) =>
-        prev.map((c) => (c.id === draggingId ? { ...c, x: snappedX, y: snappedY } : c))
-      );
+      // Lock snap to 20px grid
+      const snappedX = snapToGrid(rawX, 20);
+      const snappedY = snapToGrid(rawY, 20);
+
+      updateComponentPosition(activeDragId, snappedX, snappedY);
     }
   };
 
-  const handleMouseUp = () => {
-    setIsPanning(false);
-    setDraggingId(null);
+  const handleSvgMouseUp = () => {
+    endPan();
+    setActiveDragId(null);
   };
 
-  // Wheel zoom
-  const handleWheel = (e: React.WheelEvent<SVGSVGElement>) => {
-    e.preventDefault();
-    const scale = e.deltaY < 0 ? 1.05 : 0.95;
-    setZoom((z) => Math.min(Math.max(0.4, z * scale), 2.5));
-  };
-
-  // Component Drag Start
-  const startDragComp = (e: React.MouseEvent, c: ComponentJSON) => {
+  const handleCompDragStart = (e: React.MouseEvent, cId: string, cx: number, cy: number) => {
     e.stopPropagation();
     if (svgRef.current) {
-      setDraggingId(c.id);
-      setSelectedComp(c);
+      setActiveDragId(cId);
       const rect = svgRef.current.getBoundingClientRect();
       const clickX = (e.clientX - rect.left - pan.x) / zoom;
       const clickY = (e.clientY - rect.top - pan.y) / zoom;
-      dragOffset.current = {
-        x: clickX - (c.x || 0),
-        y: clickY - (c.y || 0),
+      dragStartOffset.current = {
+        x: clickX - cx,
+        y: clickY - cy,
       };
+    }
+  };
+
+  const handleResetView = () => {
+    resetZoom();
+    resetPan();
+  };
+
+  const handleCenterDiagram = () => {
+    if (components.length === 0) return;
+    // Calculate bounding box of components
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    components.forEach((c) => {
+      const norm = normalizeType(c.type);
+      const dims = COMPONENT_DIMENSIONS[norm] || { width: 80, height: 50 };
+      minX = Math.min(minX, c.x);
+      minY = Math.min(minY, c.y);
+      maxX = Math.max(maxX, c.x + dims.width);
+      maxY = Math.max(maxY, c.y + dims.height);
+    });
+
+    const midX = (minX + maxX) / 2;
+    const midY = (minY + maxY) / 2;
+
+    if (svgRef.current) {
+      const w = svgRef.current.clientWidth || 800;
+      const h = svgRef.current.clientHeight || 500;
+      setPan({
+        x: w / 2 - midX * zoom,
+        y: h / 2 - midY * zoom,
+      });
+    }
+  };
+
+  const handleToggleFullscreen = () => {
+    const container = svgRef.current?.parentElement;
+    if (!container) return;
+    if (!document.fullscreenElement) {
+      container.requestFullscreen().catch((err) => {
+        console.error("Error attempting to enable full-screen mode:", err);
+      });
+    } else {
+      document.exitFullscreen();
     }
   };
 
@@ -115,7 +146,7 @@ export const CircuitRenderer: React.FC<CircuitRendererProps> = ({ data }) => {
     const url = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(source);
     const trigger = document.createElement("a");
     trigger.href = url;
-    trigger.download = `${data.project?.title || "circuit"}_schematic.svg`;
+    trigger.download = `${data.project?.title || "schematic"}_design.svg`;
     trigger.click();
   };
 
@@ -131,13 +162,13 @@ export const CircuitRenderer: React.FC<CircuitRendererProps> = ({ data }) => {
       canvas.height = 800;
       const ctx = canvas.getContext("2d");
       if (ctx) {
-        ctx.fillStyle = "#1e1b4b"; // Dark background default
+        ctx.fillStyle = "#0f172a"; // dark background for schematic exports
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
         const url = canvas.toDataURL("image/png");
         const trigger = document.createElement("a");
         trigger.href = url;
-        trigger.download = `${data.project?.title || "circuit"}_schematic.png`;
+        trigger.download = `${data.project?.title || "schematic"}_design.png`;
         trigger.click();
       }
     };
@@ -153,7 +184,7 @@ export const CircuitRenderer: React.FC<CircuitRendererProps> = ({ data }) => {
           <title>Print Schematic - CircuitMind AI</title>
           <style>
             body { margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; background: #fff; }
-            svg { width: 90%; height: auto; }
+            svg { width: 95%; height: auto; }
           </style>
         </head>
         <body>
@@ -166,141 +197,68 @@ export const CircuitRenderer: React.FC<CircuitRendererProps> = ({ data }) => {
   };
 
   const exportJSON = () => {
-    const jsonStr = JSON.stringify({ ...data, components }, null, 2);
-    const blob = new Blob([jsonStr], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
+    const jsonString = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
     const trigger = document.createElement("a");
-    trigger.href = url;
-    trigger.download = `${data.project?.title || "circuit"}_data.json`;
+    trigger.href = jsonString;
+    trigger.download = `${data.project?.title || "schematic"}_design.json`;
     trigger.click();
   };
 
-  // Match and render corresponding symbol
-  const renderSymbol = (c: ComponentJSON) => {
-    const isSelected = selectedComp?.id === c.id;
-    const props = {
-      id: c.id,
-      label: c.label,
-      value: c.value,
-      selected: isSelected,
-      onSelect: () => setSelectedComp(c),
-    };
-
-    const type = normalizeType(c.type);
-
-    switch (type) {
-      case "Arduino Uno": return <ArduinoUno {...props} />;
-      case "Arduino Nano": return <ArduinoNano {...props} />;
-      case "ESP32": return <ESP32 {...props} />;
-      case "ESP8266": return <ESP8266 {...props} />;
-      case "Resistor": return <Resistor {...props} />;
-      case "Capacitor":
-      case "Ceramic Capacitor":
-        return <Capacitor {...props} />;
-      case "Electrolytic Capacitor":
-        return <Capacitor {...props} electrolytic />;
-      case "LED": return <LED {...props} />;
-      case "RGB LED": return <RGBLED {...props} />;
-      case "Battery": return <Battery {...props} />;
-      case "9V Battery": return <Battery9V {...props} />;
-      case "Power Supply": return <PowerSupply {...props} />;
-      case "Ground": return <Ground {...props} />;
-      case "Switch": return <Switch {...props} />;
-      case "Push Button": return <PushButton {...props} />;
-      case "Buzzer": return <Buzzer {...props} />;
-      case "Servo": return <Servo {...props} />;
-      case "Relay": return <Relay {...props} />;
-      case "DC Motor": return <DCMotor {...props} />;
-      case "Stepper Motor": return <StepperMotor {...props} />;
-      case "L293D":
-      case "L298N":
-      case "IC Socket":
-        return <MotorDriver {...props} />;
-      case "Breadboard": return <Breadboard {...props} />;
-      case "LCD 16x2": return <LCD16x2 {...props} />;
-      case "OLED":
-      case "I2C Module":
-        return <OLED {...props} />;
-      case "Bluetooth HC05": return <BluetoothHC05 {...props} />;
-      case "WiFi ESP8266": return <WiFiESP8266 {...props} />;
-      case "IR Sensor": return <IRSensor {...props} />;
-      case "Ultrasonic Sensor": return <UltrasonicSensor {...props} />;
-      case "Flame Sensor":
-      case "Gas Sensor":
-        return <GasSensor {...props} />;
-      case "LDR": return <LDR {...props} />;
-      case "Potentiometer": return <Potentiometer {...props} />;
-      case "Transistor NPN": return <Transistor {...props} />;
-      case "Transistor PNP": return <Transistor {...props} pnp />;
-      case "MOSFET": return <MOSFET {...props} />;
-      case "Diode": return <Diode {...props} />;
-      case "Zener Diode": return <Diode {...props} zener />;
-      case "Bridge Rectifier": return <BridgeRectifier {...props} />;
-      case "Crystal Oscillator": return <CrystalOscillator {...props} />;
-      case "Voltage Regulator 7805":
-      case "LM317":
-        return <VoltageRegulator {...props} />;
-      case "LM358": return <LM358 {...props} />;
-      case "AND Gate":
-      case "OR Gate":
-      case "NOT Gate":
-      case "NAND":
-      case "NOR":
-      case "XOR":
-        return <LogicGate {...props} type={type.split(" ")[0] as any} />;
-      default:
-        // Default rectangle fallback for unknown custom components
-        return (
-          <g onClick={() => setSelectedComp(c)}>
-            <rect x="0" y="0" width="80" height="50" rx="3" className={`fill-card stroke-2 ${isSelected ? "stroke-brand" : "stroke-border"}`} />
-            <text x="40" y="25" textAnchor="middle" className="font-mono text-[9px] fill-foreground font-bold">{c.id}</text>
-            <text x="40" y="42" textAnchor="middle" className="font-mono text-[7px] fill-muted-foreground">{c.type}</text>
-          </g>
-        );
+  const handleCopyDiagram = async () => {
+    if (!svgRef.current) return;
+    try {
+      const serializer = new XMLSerializer();
+      const source = serializer.serializeToString(svgRef.current);
+      await navigator.clipboard.writeText(source);
+      alert("SVG markup copied to clipboard!");
+    } catch (err) {
+      console.error(err);
     }
   };
 
-  // Fetch component dynamic descriptions
-  const getComponentInfo = (c: ComponentJSON) => {
-    const type = normalizeType(c.type).toLowerCase();
-    if (type.includes("arduino") || type.includes("esp32")) {
+  const selectedComp = components.find((c) => c.id === selectedCompId) || null;
+
+  // Scan connections for inspector panel
+  const getConnectedDevices = (cId: string) => {
+    const list: Array<{ pin: string; device: string; devicePin: string }> = [];
+    if (!data.connections) return list;
+
+    data.connections.forEach((conn) => {
+      const [fromId, fromPin] = conn.from.split(":");
+      const [toId, toPin] = conn.to.split(":");
+
+      if (fromId === cId) {
+        list.push({ pin: fromPin, device: toId, devicePin: toPin });
+      } else if (toId === cId) {
+        list.push({ pin: toPin, device: fromId, devicePin: fromPin });
+      }
+    });
+
+    return list;
+  };
+
+  const getComponentSpecs = (c: any) => {
+    const norm = normalizeType(c.type).toLowerCase();
+    if (norm.includes("arduino") || norm.includes("esp32")) {
       return {
         desc: "Main microcontroller development board. Coordinates pin inputs, runs firmware cycles, and controls peripherals.",
-        pinCount: "14+ GPIO",
         datasheet: "https://www.arduino.cc/en/hardware",
       };
     }
-    if (type.includes("resistor")) {
+    if (norm.includes("resistor")) {
       return {
-        desc: "Passive component that limits electric current flow, establishing voltage drops inside active circuits.",
-        pinCount: "2 Pins",
+        desc: "Limits current in the circuit. Tolerance: 5%, Power Rating: 0.25W.",
         datasheet: "https://en.wikipedia.org/wiki/Resistor",
       };
     }
-    if (type.includes("capacitor")) {
+    if (norm.includes("led")) {
       return {
-        desc: "Filters high-frequency noises, bypasses ripples, and stores electrical potential temporarily.",
-        pinCount: "2 Pins",
-        datasheet: "https://en.wikipedia.org/wiki/Capacitor",
-      };
-    }
-    if (type.includes("led")) {
-      return {
-        desc: "Light Emitting Diode. Emits photons when forward biased. Requires current-limiting resistor to protect from burnout.",
-        pinCount: "2 or 4 Pins",
+        desc: "Light Emitting Diode. Emits light when forward biased. Forward voltage: ~2.0V.",
         datasheet: "https://en.wikipedia.org/wiki/Light-emitting_diode",
       };
     }
-    if (type.includes("sensor")) {
-      return {
-        desc: "Detects physical parameter variations (light, gas, distance) and outputs corresponding analog or digital signals.",
-        pinCount: "3 or 4 Pins",
-        datasheet: "https://components101.com/sensors",
-      };
-    }
     return {
-      desc: `Discrete EEE component (${c.type}) configured as part of the ${data.project?.title || "schematic"} design.`,
-      pinCount: "Standard leads",
+      desc: `Discrete EEE component (${c.type}) configured as part of the schematic design.`,
       datasheet: `https://www.google.com/search?q=${c.type}+datasheet`,
     };
   };
@@ -309,78 +267,101 @@ export const CircuitRenderer: React.FC<CircuitRendererProps> = ({ data }) => {
     <div className="relative flex h-[580px] w-full flex-col overflow-hidden rounded-xl border border-border bg-slate-950/20 dark:bg-slate-900/30">
       
       {/* 1. Control Toolbar */}
-      <div className="flex items-center justify-between border-b border-border/40 bg-background/50 px-4 py-2 text-xs">
-        <div className="flex items-center gap-1">
-          <button onClick={() => setZoom((z) => Math.max(0.4, z - 0.1))} className="rounded-md p-1.5 hover:bg-secondary/60 text-muted-foreground hover:text-foreground" title="Zoom Out"><ZoomOut className="size-4" /></button>
+      <div className="flex flex-wrap items-center justify-between border-b border-border/40 bg-background/50 px-4 py-2 gap-2 text-xs">
+        <div className="flex items-center gap-1.5">
+          <button onClick={zoomOut} className="rounded-md p-1.5 hover:bg-secondary/60 text-muted-foreground hover:text-foreground" title="Zoom Out"><ZoomOut className="size-4" /></button>
           <span className="min-w-[40px] text-center font-mono font-semibold text-muted-foreground">{Math.round(zoom * 100)}%</span>
-          <button onClick={() => setZoom((z) => Math.min(2.5, z + 0.1))} className="rounded-md p-1.5 hover:bg-secondary/60 text-muted-foreground hover:text-foreground" title="Zoom In"><ZoomIn className="size-4" /></button>
-          <button onClick={() => { setZoom(0.85); setPan({ x: 80, y: 50 }); }} className="rounded-md p-1.5 hover:bg-secondary/60 text-muted-foreground hover:text-foreground ml-1" title="Reset View"><Maximize2 className="size-3.5" /></button>
-          <span className="text-[10px] text-muted-foreground/60 hidden sm:inline ml-2">🖱️ Drag background to Pan · Drag parts to arrange</span>
+          <button onClick={zoomIn} className="rounded-md p-1.5 hover:bg-secondary/60 text-muted-foreground hover:text-foreground" title="Zoom In"><ZoomIn className="size-4" /></button>
+          <div className="h-4 w-[1px] bg-border/60 mx-1" />
+          <button onClick={handleResetView} className="rounded-md p-1.5 hover:bg-secondary/60 text-muted-foreground hover:text-foreground" title="Reset View"><RefreshCw className="size-3.5" /></button>
+          <button onClick={handleCenterDiagram} className="rounded-md p-1.5 hover:bg-secondary/60 text-muted-foreground hover:text-foreground" title="Center Diagram / Fit Screen"><Crosshair className="size-3.5" /></button>
+          <button onClick={handleToggleFullscreen} className="rounded-md p-1.5 hover:bg-secondary/60 text-muted-foreground hover:text-foreground" title="Toggle Fullscreen"><Maximize2 className="size-3.5" /></button>
         </div>
+        
         <div className="flex items-center gap-1.5">
           <button onClick={exportSVG} className="inline-flex items-center gap-1 rounded-md border border-border/60 bg-background px-2.5 py-1.5 hover:bg-accent"><Download className="size-3.5" /> SVG</button>
           <button onClick={exportPNG} className="inline-flex items-center gap-1 rounded-md border border-border/60 bg-background px-2.5 py-1.5 hover:bg-accent"><Download className="size-3.5" /> PNG</button>
           <button onClick={printSchematic} className="inline-flex items-center gap-1 rounded-md border border-border/60 bg-background px-2.5 py-1.5 hover:bg-accent"><Printer className="size-3.5" /> Print</button>
+          <button onClick={handleCopyDiagram} className="inline-flex items-center gap-1 rounded-md border border-border/60 bg-background px-2.5 py-1.5 hover:bg-accent" title="Copy SVG Markup"><Layers className="size-3.5" /></button>
           <button onClick={exportJSON} className="inline-flex items-center gap-1 rounded-md border border-border/60 bg-background px-2.5 py-1.5 hover:bg-accent" title="Download Source JSON"><FileCode className="size-3.5" /></button>
         </div>
       </div>
 
       {/* 2. Interactive SVG Canvas */}
-      <div className="relative flex-1 cursor-grab active:cursor-grabbing select-none overflow-hidden">
+      <div className="relative flex-1 cursor-grab active:cursor-grabbing overflow-hidden">
         <svg
           ref={svgRef}
           id="schematic-svg"
           width="100%"
           height="100%"
           className="bg-slate-900/5 dark:bg-slate-950/10"
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseUp}
-          onWheel={handleWheel}
+          onMouseDown={handleSvgMouseDown}
+          onMouseMove={handleSvgMouseMove}
+          onMouseUp={handleSvgMouseUp}
+          onMouseLeave={handleSvgMouseUp}
+          onWheel={(e) => { e.preventDefault(); handleWheelZoom(e.deltaY); }}
         >
-          {/* Schematic gridlines pattern */}
+          {/* Engineering CAD Grid pattern */}
           <defs>
             <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
               <path d="M 20 0 L 0 0 0 20" fill="none" className="stroke-muted-foreground/5 dark:stroke-muted-foreground/[0.03]" strokeWidth="1" />
             </pattern>
+            <style>
+              {`
+                @keyframes current-flow {
+                  to {
+                    stroke-dashoffset: -20;
+                  }
+                }
+              `}
+            </style>
           </defs>
           <rect width="100%" height="100%" fill="url(#grid)" />
 
-          {/* Zoom and Pan group wrapper */}
+          {/* Group wrapper supporting zoom and pan */}
           <g transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
             
-            {/* Draw Wiring Connections */}
+            {/* 1. Connection lines (Wires) */}
             {data.connections &&
               data.connections.map((conn, idx) => (
                 <WireRenderer
-                  key={`${conn.from}-${conn.to}-${idx}`}
-                  from={conn.from}
-                  to={conn.to}
+                  key={`wire-${conn.from}-${conn.to}-${idx}`}
+                  connection={conn}
                   components={components}
-                  hovered={hoveredWire === idx}
+                  hovered={hoveredWireIdx === idx}
                   selected={
-                    selectedComp?.id === conn.from.split(":")[0] ||
-                    selectedComp?.id === conn.to.split(":")[0]
+                    selectedCompId === conn.from.split(":")[0] ||
+                    selectedCompId === conn.to.split(":")[0]
                   }
-                  onHover={(h) => setHoveredWire(h ? idx : null)}
+                  onHover={(h) => setHoveredWireIdx(h ? idx : null)}
                 />
               ))}
 
-            {/* Draw Component Symbols */}
+            {/* 2. Solder Junction connection dots */}
+            <ConnectionRenderer connections={data.connections} components={components} />
+
+            {/* 3. Component Symbols */}
             {components.map((c) => (
               <g
                 key={c.id}
-                transform={`translate(${c.x || 0}, ${c.y || 0})`}
-                onMouseDown={(e) => startDragComp(e, c)}
+                onMouseDown={(e) => handleCompDragStart(e, c.id, c.x, c.y)}
               >
-                {renderSymbol(c)}
+                <ComponentRenderer
+                  component={c}
+                  selected={selectedCompId === c.id}
+                  hovered={hoveredCompId === c.id}
+                  onSelect={() => setSelectedCompId(c.id)}
+                  onHover={(h) => setHoveredCompId(h ? c.id : null)}
+                />
               </g>
             ))}
+
+            {/* 4. Text labels (Ref designators, value specifiers) */}
+            <LabelRenderer components={components} />
           </g>
         </svg>
 
-        {/* 3. Component Details Side Panel */}
+        {/* 3. Inspector Side Drawer Panel */}
         {selectedComp && (
           <div className="absolute right-4 top-4 w-72 max-w-xs rounded-xl border border-border bg-background/95 p-4 shadow-xl backdrop-blur-md transition-all duration-300">
             <div className="flex items-center justify-between border-b pb-2 mb-3">
@@ -394,17 +375,17 @@ export const CircuitRenderer: React.FC<CircuitRendererProps> = ({ data }) => {
                 </div>
               </div>
               <button
-                onClick={() => setSelectedComp(null)}
+                onClick={() => setSelectedCompId(null)}
                 className="rounded-md p-1 hover:bg-secondary/60 text-muted-foreground hover:text-foreground"
               >
                 <X className="size-4" />
               </button>
             </div>
             
-            <div className="space-y-3 text-xs">
+            <div className="space-y-3 text-xs overflow-y-auto max-h-[360px] pr-1">
               <div>
                 <span className="font-semibold text-muted-foreground block text-[10px] uppercase tracking-wider">Description</span>
-                <p className="text-muted-foreground mt-0.5 leading-relaxed">{getComponentInfo(selectedComp).desc}</p>
+                <p className="text-muted-foreground mt-0.5 leading-relaxed">{getComponentSpecs(selectedComp).desc}</p>
               </div>
               
               {selectedComp.value && (
@@ -414,19 +395,60 @@ export const CircuitRenderer: React.FC<CircuitRendererProps> = ({ data }) => {
                 </div>
               )}
 
-              <div className="grid grid-cols-2 gap-2 pt-1 border-t border-border/40">
+              {/* Pin out mapping sub-list */}
+              <div>
+                <span className="font-semibold text-muted-foreground block text-[10px] uppercase tracking-wider">Pins & Directions</span>
+                <div className="mt-1 flex flex-wrap gap-1">
+                  {Object.keys(getPinConfig(selectedComp.type, "") || {}).map((pinName) => {
+                    const pin = getPinConfig(selectedComp.type, pinName);
+                    return (
+                      <span key={pinName} className="rounded bg-muted px-1.5 py-0.5 text-[8px] font-mono text-muted-foreground">
+                        {pinName} ({pin.direction})
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Connected devices sub-list */}
+              <div>
+                <span className="font-semibold text-muted-foreground block text-[10px] uppercase tracking-wider">Connections</span>
+                <div className="mt-1 space-y-1">
+                  {getConnectedDevices(selectedComp.id).length > 0 ? (
+                    getConnectedDevices(selectedComp.id).map((conn, idx) => (
+                      <div key={idx} className="flex justify-between rounded bg-muted/30 px-2 py-1 font-mono text-[9px] text-muted-foreground">
+                        <span>Pin {conn.pin}</span>
+                        <span>➜</span>
+                        <span>{conn.device}:{conn.devicePin}</span>
+                      </div>
+                    ))
+                  ) : (
+                    <span className="text-[10px] text-muted-foreground/60 italic">No active wiring.</span>
+                  )}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 pt-1.5 border-t border-border/40">
                 <div>
-                  <span className="text-[10px] text-muted-foreground uppercase">Pins Exposing</span>
-                  <p className="font-semibold text-foreground mt-0.5">{getComponentInfo(selectedComp).pinCount}</p>
+                  <span className="text-[10px] text-muted-foreground uppercase">Rotation</span>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <span className="font-semibold text-foreground">{selectedComp.rotation || 0}°</span>
+                    <button
+                      onClick={() => rotateComponent(selectedComp.id)}
+                      className="rounded border border-border px-1 py-0.5 text-[8px] hover:bg-accent text-brand font-medium active:scale-95 transition"
+                    >
+                      Rotate
+                    </button>
+                  </div>
                 </div>
                 <div>
-                  <span className="text-[10px] text-muted-foreground uppercase">Placement Snap</span>
+                  <span className="text-[10px] text-muted-foreground uppercase">Grid Coord</span>
                   <p className="font-mono text-foreground mt-0.5">X:{selectedComp.x} Y:{selectedComp.y}</p>
                 </div>
               </div>
 
               <a
-                href={getComponentInfo(selectedComp).datasheet}
+                href={getComponentSpecs(selectedComp).datasheet}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="mt-2 inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-border/80 bg-background py-2 hover:bg-accent font-medium text-foreground transition"

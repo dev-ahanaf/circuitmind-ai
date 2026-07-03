@@ -1,4 +1,4 @@
-import { type CircuitJSON } from "./layout";
+import { type Circuit as CircuitJSON } from "@/types/Circuit";
 
 export interface ParsedMarkdown {
   overview: string;

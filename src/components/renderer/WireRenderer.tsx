@@ -1,110 +1,62 @@
 import React from "react";
-import { getPinConfig, type PinConfig } from "./PinMap";
-import { type ComponentJSON } from "@/utils/layout";
+import { type CircuitConnection } from "@/types/Connection";
+import { type CircuitComponent } from "@/types/Component";
+import { getRotatedPinConfig } from "@/utils/pinResolver";
+import { routeWire, serializePath } from "@/utils/wireRouting";
 
-interface WireProps {
-  from: string; // "U1:D13"
-  to: string; // "R1:left"
-  components: ComponentJSON[];
+interface WireRendererProps {
+  connection: CircuitConnection;
+  components: CircuitComponent[];
   hovered?: boolean;
   selected?: boolean;
   onHover?: (hovered: boolean) => void;
+  animate?: boolean; // Enable current pulse flows!
 }
 
-/**
- * Computes Manhattan path segments from start to end based on pin directions
- */
-export function getOrthogonalPath(
-  x1: number,
-  y1: number,
-  dir1: string,
-  x2: number,
-  y2: number,
-  dir2: string
-): string {
-  const exitOffset = 15;
-  
-  // 1. Calculate exit points
-  let ex1 = x1;
-  let ey1 = y1;
-  if (dir1 === "left") ex1 -= exitOffset;
-  else if (dir1 === "right") ex1 += exitOffset;
-  else if (dir1 === "top") ey1 -= exitOffset;
-  else if (dir1 === "bottom") ey1 += exitOffset;
-
-  let ex2 = x2;
-  let ey2 = y2;
-  if (dir2 === "left") ex2 -= exitOffset;
-  else if (dir2 === "right") ex2 += exitOffset;
-  else if (dir2 === "top") ey2 -= exitOffset;
-  else if (dir2 === "bottom") ey2 += exitOffset;
-
-  // 2. Compute intermediate bend points
-  const points: Array<{ x: number; y: number }> = [{ x: x1, y: y1 }, { x: ex1, y: ey1 }];
-
-  const isHoriz1 = dir1 === "left" || dir1 === "right";
-  const isHoriz2 = dir2 === "left" || dir2 === "right";
-
-  if (isHoriz1 && isHoriz2) {
-    // Both horizontal exit: route with a vertical middle segment
-    const midX = (ex1 + ex2) / 2;
-    points.push({ x: midX, y: ey1 });
-    points.push({ x: midX, y: ey2 });
-  } else if (!isHoriz1 && !isHoriz2) {
-    // Both vertical exit: route with a horizontal middle segment
-    const midY = (ey1 + ey2) / 2;
-    points.push({ x: ex1, y: midY });
-    points.push({ x: ex2, y: midY });
-  } else {
-    // One horizontal, one vertical exit: route with a single right-angle corner
-    if (isHoriz1) {
-      points.push({ x: ex2, y: ey1 });
-    } else {
-      points.push({ x: ex1, y: ey2 });
-    }
-  }
-
-  points.push({ x: ex2, y: ey2 });
-  points.push({ x: x2, y: y2 });
-
-  // 3. Compile SVG Path String
-  return points.map((p, idx) => `${idx === 0 ? "M" : "L"} ${p.x} ${p.y}`).join(" ");
-}
-
-export const WireRenderer: React.FC<WireProps> = ({
-  from,
-  to,
+export const WireRenderer: React.FC<WireRendererProps> = React.memo(({
+  connection,
   components,
   hovered,
   selected,
   onHover,
+  animate = true,
 }) => {
-  // Parse from and to (format componentId:pinName)
-  const [fromId, fromPin] = from.split(":");
-  const [toId, toPin] = to.split(":");
+  const [fromId, fromPin] = connection.from.split(":");
+  const [toId, toPin] = connection.to.split(":");
 
   const compFrom = components.find((c) => c.id === fromId);
   const compTo = components.find((c) => c.id === toId);
 
   if (!compFrom || !compTo) return null;
 
-  // Get relative pin positions
-  const pinFrom = getPinConfig(compFrom.type, fromPin);
-  const pinTo = getPinConfig(compTo.type, toPin);
+  // Compute rotated coordinates
+  const pinFrom = getRotatedPinConfig(compFrom, fromPin);
+  const pinTo = getRotatedPinConfig(compTo, toPin);
 
-  // Compute absolute board coordinates
-  const x1 = (compFrom.x || 0) + pinFrom.x;
-  const y1 = (compFrom.y || 0) + pinFrom.y;
-  const x2 = (compTo.x || 0) + pinTo.x;
-  const y2 = (compTo.y || 0) + pinTo.y;
+  const points = routeWire(
+    pinFrom.x,
+    pinFrom.y,
+    pinFrom.direction,
+    pinTo.x,
+    pinTo.y,
+    pinTo.direction
+  );
 
-  const path = getOrthogonalPath(x1, y1, pinFrom.direction, x2, y2, pinTo.direction);
+  const pathStr = serializePath(points);
 
-  const colorClass = selected
+  // Wire styling
+  const isVcc = fromPin.toUpperCase().includes("VCC") || fromPin.includes("5V") || fromPin.includes("3.3V") || toPin.toUpperCase().includes("VCC") || toPin.includes("5V") || toPin.includes("3.3V");
+  const isGnd = fromPin.toUpperCase().includes("GND") || toPin.toUpperCase().includes("GND");
+  
+  let wireColor = "stroke-muted-foreground/60 dark:stroke-muted-foreground/45";
+  if (isVcc) wireColor = "stroke-red-500/80 dark:stroke-red-500/60";
+  else if (isGnd) wireColor = "stroke-blue-500/80 dark:stroke-blue-500/60";
+
+  const activeColor = selected
     ? "stroke-brand"
     : hovered
     ? "stroke-brand/70"
-    : "stroke-muted-foreground/60 dark:stroke-muted-foreground/45";
+    : wireColor;
 
   return (
     <g
@@ -112,43 +64,59 @@ export const WireRenderer: React.FC<WireProps> = ({
       onMouseLeave={() => onHover?.(false)}
       className="group transition-all"
     >
-      {/* Thick invisible interaction path for easier hovering */}
+      {/* Thick interactive hitbox */}
       <path
-        d={path}
+        d={pathStr}
         className="fill-none stroke-transparent stroke-[12] cursor-pointer"
       />
 
-      {/* Main wire path (underlying glow on hover/select) */}
+      {/* Glow path */}
       <path
-        d={path}
-        className={`fill-none stroke-[4] opacity-0 transition-opacity duration-200 group-hover:opacity-40 ${
+        d={pathStr}
+        className={`fill-none stroke-[5] opacity-0 transition-opacity duration-200 group-hover:opacity-40 ${
           selected ? "opacity-60 stroke-brand" : "stroke-brand/60"
         }`}
       />
 
-      {/* Actual drawn wire wire */}
+      {/* Main wire line */}
       <path
-        d={path}
-        className={`fill-none stroke-2 transition-colors duration-200 ${colorClass}`}
+        d={pathStr}
+        className={`fill-none stroke-[2] transition-colors duration-150 ${activeColor}`}
       />
 
-      {/* Terminal connection dots */}
+      {/* Current flow / pulse animation */}
+      {animate && (
+        <path
+          d={pathStr}
+          className={`fill-none stroke-[1.5] stroke-dasharray stroke-white/50 opacity-0 group-hover:opacity-100 ${
+            selected ? "opacity-100" : ""
+          }`}
+          strokeDasharray="6,12"
+          style={{
+            animation: "current-flow 1.5s linear infinite",
+          }}
+        />
+      )}
+
+      {/* Pin contact dots */}
       <circle
-        cx={x1}
-        cy={y1}
+        cx={pinFrom.x}
+        cy={pinFrom.y}
         r="3"
-        className={`transition-colors ${
+        className={`transition-colors duration-150 ${
           selected || hovered ? "fill-brand" : "fill-card stroke-muted-foreground stroke-1"
         }`}
       />
       <circle
-        cx={x2}
-        cy={y2}
+        cx={pinTo.x}
+        cy={pinTo.y}
         r="3"
-        className={`transition-colors ${
+        className={`transition-colors duration-150 ${
           selected || hovered ? "fill-brand" : "fill-card stroke-muted-foreground stroke-1"
         }`}
       />
     </g>
   );
-};
+});
+
+WireRenderer.displayName = "WireRenderer";

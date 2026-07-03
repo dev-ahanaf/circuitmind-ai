@@ -59,7 +59,7 @@ export const ESP32: React.FC<SymbolProps> = ({ id, label, selected, hovered, onS
       {Object.entries(ESP32Pins).map(([name, pin]) => (
         <g key={name}>
           <line x1={pin.x} y1={pin.y} x2={pin.x + (pin.direction === "left" ? 10 : -10)} y2={pin.y} className="stroke-muted-foreground stroke-[1.5]" />
-          <circle cx={pin.x} cx={pin.x} cy={pin.y} r="3" className="fill-card stroke-muted-foreground stroke-1 hover:fill-brand hover:stroke-brand transition" />
+          <circle cx={pin.x} cy={pin.y} r="3" className="fill-card stroke-muted-foreground stroke-1 hover:fill-brand hover:stroke-brand transition" />
           <text x={pin.x + (pin.direction === "left" ? 15 : -15)} y={pin.y + 3} textAnchor={pin.direction === "left" ? "start" : "end"} className="font-mono text-[7px] font-semibold fill-muted-foreground">{name.replace(/\d+$/, "")}</text>
         </g>
       ))}

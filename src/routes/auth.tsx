@@ -18,8 +18,9 @@ function AuthPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/dashboard" });
+    supabase.auth.getSession().then((res: any) => {
+      const data = res?.data;
+      if (data?.session) navigate({ to: "/dashboard" });
     });
   }, [navigate]);
 
