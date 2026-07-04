@@ -17,7 +17,7 @@
   <img src="public/banner.png" alt="CircuitMind AI Banner" width="100%">
 </p>
 
-[**Explore the Live Demo**](https://circuitmind-ai.vercel.app) • [**Watch Demo Video**](#) • [**Report a Bug**](https://github.com/dev-ahanaf/circuitmind-ai/issues)
+[**Explore the Live Demo**](https://circuitmind-ai-omega.vercel.app/) • [**Watch Demo Video**](#) • [**Report a Bug**](https://github.com/dev-ahanaf/circuitmind-ai/issues)
 
 </div>
 
