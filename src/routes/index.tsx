@@ -478,7 +478,7 @@ function Footer() {
             <div>
               <div className="mb-3 text-xs uppercase tracking-widest text-muted-foreground">Company</div>
               <ul className="space-y-2">
-                <li><a href="#" className="hover:text-foreground text-muted-foreground">About</a></li>
+                <li><Link to="/about" className="hover:text-foreground text-muted-foreground">About</Link></li>
                 <li><a href="#" className="hover:text-foreground text-muted-foreground">Blog</a></li>
                 <li><a href="#" className="hover:text-foreground text-muted-foreground">Contact</a></li>
               </ul>
