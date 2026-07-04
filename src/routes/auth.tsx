@@ -2,8 +2,9 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, Github, AlertCircle, ChevronDown, ChevronUp } from "lucide-react";
 import { BrandMark } from "../components/brand-mark";
+import { motion } from "framer-motion";
 
 
 export const Route = createFileRoute("/auth")({
@@ -17,6 +18,7 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showGoogleSetup, setShowGoogleSetup] = useState(false);
 
 
   useEffect(() => {
@@ -55,7 +57,18 @@ function AuthPage() {
     }
   }
 
-
+  async function google() {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/dashboard`,
+      },
+    });
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+  }
 
   return (
     <div className="relative min-h-screen overflow-hidden">
@@ -95,7 +108,47 @@ function AuthPage() {
             {mode === "signin" ? "Sign in to continue building" : "Start designing in seconds"}
           </p>
 
-          <form onSubmit={submit} className="mt-6 space-y-3">
+          <button
+            onClick={google}
+            className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-medium hover:bg-accent transition"
+          >
+            <GoogleIcon /> Continue with Google
+          </button>
+
+          <div className="mt-2 text-left">
+            <button
+              onClick={() => setShowGoogleSetup(!showGoogleSetup)}
+              className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition"
+            >
+              <AlertCircle className="size-3.5" />
+              <span>Need help setting up Google Sign-In?</span>
+              {showGoogleSetup ? <ChevronUp className="size-3" /> : <ChevronDown className="size-3" />}
+            </button>
+            
+            {showGoogleSetup && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                className="mt-2 rounded-lg border border-border bg-secondary/30 p-3 text-xs text-muted-foreground space-y-2 overflow-hidden"
+              >
+                <p className="font-semibold text-foreground">To configure Google login for this project:</p>
+                <ol className="list-decimal pl-4 space-y-1.5">
+                  <li>Go to your <a href="https://supabase.com/dashboard/project/icemznltmednczaivlcr/auth/providers" target="_blank" rel="noopener noreferrer" className="text-brand font-semibold underline hover:text-brand/80">Supabase Auth Providers</a> page.</li>
+                  <li>Expand the <strong>Google</strong> provider and turn on <strong>Enable Google Provider</strong>.</li>
+                  <li>Create OAuth Credentials in the <a href="https://console.cloud.google.com/" target="_blank" rel="noopener noreferrer" className="text-brand font-semibold underline hover:text-brand/80">Google Cloud Console</a> as a <strong>Web application</strong>.</li>
+                  <li>Add Supabase's redirect URI to Google's <strong>Authorized Redirect URIs</strong>.</li>
+                  <li>Paste the <strong>Client ID</strong> and <strong>Client Secret</strong> back in Supabase and click <strong>Save</strong>.</li>
+                </ol>
+              </motion.div>
+            )}
+          </div>
+
+
+          <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground">
+            <div className="h-px flex-1 bg-border" /> or <div className="h-px flex-1 bg-border" />
+          </div>
+
+          <form onSubmit={submit} className="space-y-3">
             {mode === "signup" && (
               <Field label="Name">
                 <input
@@ -174,5 +227,13 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
       <span className="mb-1.5 block text-xs font-medium text-muted-foreground">{label}</span>
       {children}
     </label>
+  );
+}
+
+function GoogleIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="size-4">
+      <path fill="#EA4335" d="M12 10.2v3.9h5.5c-.2 1.4-1.6 4.1-5.5 4.1-3.3 0-6-2.7-6-6.2s2.7-6.2 6-6.2c1.9 0 3.1.8 3.8 1.5l2.6-2.5C16.9 3.4 14.7 2.4 12 2.4 6.7 2.4 2.4 6.7 2.4 12s4.3 9.6 9.6 9.6c5.5 0 9.2-3.9 9.2-9.4 0-.6-.1-1.1-.2-1.6H12z" />
+    </svg>
   );
 }
