@@ -8,31 +8,12 @@ import {
   ArrowRight,
   Search,
   Cpu,
-  CircuitBoard,
-  Zap,
-  Radio,
-  Wifi,
-  Sprout,
-  Plane,
-  BatteryCharging,
-  Cloud,
 } from "lucide-react";
 
 
 export const Route = createFileRoute("/dashboard/")({
   component: DashboardHome,
 });
-
-const QUICK = [
-  { title: "Line Follower", icon: CircuitBoard, id: "line-follower" },
-  { title: "Obstacle Robot", icon: Radio, id: "obstacle-bot" },
-  { title: "Bluetooth Car", icon: Zap, id: "bt-car" },
-  { title: "ESP32 Home", icon: Wifi, id: "esp32-home" },
-  { title: "Smart Irrigation", icon: Sprout, id: "irrigation" },
-  { title: "Drone", icon: Plane, id: "drone" },
-  { title: "Power Supply", icon: BatteryCharging, id: "power-supply" },
-  { title: "IoT Weather", icon: Cloud, id: "weather" },
-];
 
 const STATS = [
   { label: "Projects created", value: "12", icon: Save },
@@ -64,7 +45,7 @@ function DashboardHome() {
           <Search className="ml-2 size-4 text-muted-foreground" />
           <input
             className="flex-1 bg-transparent py-2 text-sm outline-none placeholder:text-muted-foreground"
-            placeholder="Search projects, components, templates…"
+            placeholder="Search components…"
           />
           <span className="hidden rounded-md border border-border px-2 py-1 text-[10px] text-muted-foreground md:block">
             ⌘ K
@@ -90,30 +71,7 @@ function DashboardHome() {
         ))}
       </div>
 
-      <section className="mt-10">
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Quick start</h2>
-          <Link to="/dashboard/templates" className="text-sm text-muted-foreground hover:text-foreground">
-            All templates <ArrowRight className="inline size-3.5" />
-          </Link>
-        </div>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-          {QUICK.map((q) => (
-            <Link
-              key={q.id}
-              to="/dashboard/templates/$id"
-              params={{ id: q.id }}
-              className="glass group rounded-2xl p-4 hover:border-brand/50 transition"
-            >
-              <div className="mb-3 inline-flex size-10 items-center justify-center rounded-xl bg-gradient-brand text-white">
-                <q.icon className="size-5" />
-              </div>
-              <div className="text-sm font-medium">{q.title}</div>
-              <div className="mt-1 text-xs text-muted-foreground">Open template</div>
-            </Link>
-          ))}
-        </div>
-      </section>
+
 
 
 

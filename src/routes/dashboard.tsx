@@ -9,7 +9,6 @@ import {
   Cable,
   Layers,
   Wrench,
-  BookOpen,
   History,
   User as UserIcon,
   Settings,
@@ -37,7 +36,6 @@ const NAV: Array<{ to: string; label: string; icon: typeof Home; exact?: boolean
   { to: "/dashboard/chat", label: "AI Assistant", icon: Bot },
   { to: "/dashboard/generator", label: "Circuit Generator", icon: Cable },
   { to: "/dashboard/components", label: "Component Library", icon: Layers },
-  { to: "/dashboard/templates", label: "Templates", icon: BookOpen },
   { to: "/dashboard/optimizer", label: "Optimizer", icon: Wrench },
   { to: "/dashboard/history", label: "History", icon: History },
 ];
