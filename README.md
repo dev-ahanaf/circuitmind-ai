@@ -14,7 +14,7 @@
 ---
 
 <p align="center">
-  <img src="https://placehold.co/800x400/1e293b/ffffff?text=CircuitMind+AI+Banner+Placeholder" alt="CircuitMind AI Banner" width="100%">
+  <img src="public/banner.png" alt="CircuitMind AI Banner" width="100%">
 </p>
 
 [**Explore the Live Demo**](https://circuitmind-ai.vercel.app) • [**Watch Demo Video**](#) • [**Report a Bug**](https://github.com/dev-ahanaf/circuitmind-ai/issues)
