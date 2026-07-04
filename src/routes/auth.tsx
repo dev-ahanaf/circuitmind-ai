@@ -2,8 +2,10 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Github } from "lucide-react";
+import { Loader2, Github, AlertCircle, ChevronDown, ChevronUp } from "lucide-react";
 import { BrandMark } from "../components/brand-mark";
+import { motion } from "framer-motion";
+
 
 export const Route = createFileRoute("/auth")({
   component: AuthPage,
@@ -16,6 +18,8 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showGoogleSetup, setShowGoogleSetup] = useState(false);
+
 
   useEffect(() => {
     supabase.auth.getSession().then((res: any) => {
@@ -110,6 +114,35 @@ function AuthPage() {
           >
             <GoogleIcon /> Continue with Google
           </button>
+
+          <div className="mt-2 text-left">
+            <button
+              onClick={() => setShowGoogleSetup(!showGoogleSetup)}
+              className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition"
+            >
+              <AlertCircle className="size-3.5" />
+              <span>Need help setting up Google Sign-In?</span>
+              {showGoogleSetup ? <ChevronUp className="size-3" /> : <ChevronDown className="size-3" />}
+            </button>
+            
+            {showGoogleSetup && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                className="mt-2 rounded-lg border border-border bg-secondary/30 p-3 text-xs text-muted-foreground space-y-2 overflow-hidden"
+              >
+                <p className="font-semibold text-foreground">To configure Google login for this project:</p>
+                <ol className="list-decimal pl-4 space-y-1.5">
+                  <li>Go to your <a href="https://supabase.com/dashboard/project/eqysjuqfkgemrrpbdgjh/auth/providers" target="_blank" rel="noopener noreferrer" className="text-brand font-semibold underline hover:text-brand/80">Supabase Auth Providers</a> page.</li>
+                  <li>Expand the <strong>Google</strong> provider and turn on <strong>Enable Google Provider</strong>.</li>
+                  <li>Create OAuth Credentials in the <a href="https://console.cloud.google.com/" target="_blank" rel="noopener noreferrer" className="text-brand font-semibold underline hover:text-brand/80">Google Cloud Console</a> as a <strong>Web application</strong>.</li>
+                  <li>Add Supabase's redirect URI to Google's <strong>Authorized Redirect URIs</strong>.</li>
+                  <li>Paste the <strong>Client ID</strong> and <strong>Client Secret</strong> back in Supabase and click <strong>Save</strong>.</li>
+                </ol>
+              </motion.div>
+            )}
+          </div>
+
 
           <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground">
             <div className="h-px flex-1 bg-border" /> or <div className="h-px flex-1 bg-border" />
