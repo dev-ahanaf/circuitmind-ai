@@ -17,7 +17,7 @@ import {
   BatteryCharging,
   Cloud,
 } from "lucide-react";
-import { TEMPLATES } from "@/lib/components-data";
+
 
 export const Route = createFileRoute("/dashboard/")({
   component: DashboardHome,
@@ -115,38 +115,7 @@ function DashboardHome() {
         </div>
       </section>
 
-      <section className="mt-10">
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Popular projects</h2>
-          <Link to="/dashboard/projects" className="text-sm text-muted-foreground hover:text-foreground">
-            Saved projects <ArrowRight className="inline size-3.5" />
-          </Link>
-        </div>
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
-          {TEMPLATES.slice(0, 6).map((t) => (
-            <Link
-              key={t.id}
-              to="/dashboard/templates/$id"
-              params={{ id: t.id }}
-              className="glass rounded-2xl p-5 hover:border-brand/50 transition"
-            >
-              <div className="flex items-center justify-between text-xs">
-                <span className="rounded-full bg-secondary/50 px-2 py-0.5">{t.category}</span>
-                <span className="text-muted-foreground">${t.cost}</span>
-              </div>
-              <div className="mt-3 font-semibold">{t.title}</div>
-              <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{t.description}</p>
-              <div className="mt-3 flex flex-wrap gap-1">
-                {t.tags.map((tag) => (
-                  <span key={tag} className="rounded-md border border-border px-1.5 py-0.5 text-[10px] text-muted-foreground">
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            </Link>
-          ))}
-        </div>
-      </section>
+
 
       <section className="mt-10">
         <div className="glass flex flex-col items-start justify-between gap-4 rounded-2xl p-6 md:flex-row md:items-center">

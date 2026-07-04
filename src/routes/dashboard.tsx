@@ -10,7 +10,6 @@ import {
   Layers,
   Wrench,
   BookOpen,
-  Save,
   History,
   User as UserIcon,
   Settings,
@@ -40,7 +39,6 @@ const NAV: Array<{ to: string; label: string; icon: typeof Home; exact?: boolean
   { to: "/dashboard/components", label: "Component Library", icon: Layers },
   { to: "/dashboard/templates", label: "Templates", icon: BookOpen },
   { to: "/dashboard/optimizer", label: "Optimizer", icon: Wrench },
-  { to: "/dashboard/projects", label: "Saved Projects", icon: Save },
   { to: "/dashboard/history", label: "History", icon: History },
 ];
 
