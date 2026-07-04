@@ -133,7 +133,7 @@ function AuthPage() {
               >
                 <p className="font-semibold text-foreground">To configure Google login for this project:</p>
                 <ol className="list-decimal pl-4 space-y-1.5">
-                  <li>Go to your <a href="https://supabase.com/dashboard/project/eqysjuqfkgemrrpbdgjh/auth/providers" target="_blank" rel="noopener noreferrer" className="text-brand font-semibold underline hover:text-brand/80">Supabase Auth Providers</a> page.</li>
+                  <li>Go to your <a href="https://supabase.com/dashboard/project/icemznltmednczaivlcr/auth/providers" target="_blank" rel="noopener noreferrer" className="text-brand font-semibold underline hover:text-brand/80">Supabase Auth Providers</a> page.</li>
                   <li>Expand the <strong>Google</strong> provider and turn on <strong>Enable Google Provider</strong>.</li>
                   <li>Create OAuth Credentials in the <a href="https://console.cloud.google.com/" target="_blank" rel="noopener noreferrer" className="text-brand font-semibold underline hover:text-brand/80">Google Cloud Console</a> as a <strong>Web application</strong>.</li>
                   <li>Add Supabase's redirect URI to Google's <strong>Authorized Redirect URIs</strong>.</li>

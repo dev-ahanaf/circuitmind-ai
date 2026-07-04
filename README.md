@@ -46,7 +46,7 @@ npm install
 Create a `.env` file in the root directory:
 ```env
 # Supabase Configuration
-VITE_SUPABASE_URL="https://eqysjuqfkgemrrpbdgjh.supabase.co"
+VITE_SUPABASE_URL="https://icemznltmednczaivlcr.supabase.co"
 VITE_SUPABASE_PUBLISHABLE_KEY="your_supabase_anon_key"
 
 # Google Gemini API
@@ -72,7 +72,7 @@ Since the project uses TanStack Start, it builds as a full SSR application. Verc
 
 1. Go to your **Vercel Settings ➜ Environment Variables**.
 2. Add the following environment keys:
-    *   `VITE_SUPABASE_URL` ➜ `https://eqysjuqfkgemrrpbdgjh.supabase.co`
+    *   `VITE_SUPABASE_URL` ➜ `https://icemznltmednczaivlcr.supabase.co`
     *   `VITE_SUPABASE_PUBLISHABLE_KEY` ➜ `your_supabase_anon_key`
     *   `GEMINI_API_KEY` ➜ `your_google_gemini_api_key`
 3. Trigger a **Redeploy** on the Vercel dashboard.
