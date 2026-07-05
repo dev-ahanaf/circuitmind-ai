@@ -1,5 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { PLANNER_SYSTEM_PROMPT, parsePlannerOutput, generateMockProjectModel } from "@/engines/ai-planner/planner";
+import { compileProjectReport } from "@/engines/documentation-engine/documentation";
 
 const CHAT_MODEL = "google/gemini-3-flash-preview";
 
@@ -123,100 +125,10 @@ By switching to ESP32 and I2C LCD, you save ৳1800 and reduce wiring complexity
   }
 
   if (lastUserMessage.toLowerCase().includes("circuit") || lastUserMessage.toLowerCase().includes("design") || lastUserMessage.toLowerCase().includes("wiring") || lastUserMessage.length > 50) {
-    return `## Project Overview
-This is a simulated circuit design for your project: **${lastUserMessage.slice(0, 100)}${lastUserMessage.length > 100 ? "..." : ""}**.
-
-**Difficulty:** Intermediate
-**Estimated Cost:** ৳1800
-**Time to build:** 3 hours
-
-## Required Components
-| Component | Qty | Purpose | Approx. Price (BDT) |
-| --- | --- | --- | --- |
-| Microcontroller (e.g. ESP32 / Arduino) | 1 | Processing | ৳500 |
-| Breadboard & Jumper wires | 1 | Prototyping | ৳300 |
-| 10k Ohm Potentiometer | 1 | Input Control | ৳120 |
-| Resistors (220 Ohm, 10k Ohm) | 5 | Safety / Pull-up | ৳80 |
-| Servo Motor / LED / Buzzer | 1 | Actuator/Indicator | ৳200 |
-
-## Wiring Connections
-| From (MCU pin) | To (Component pin) | Notes |
-| --- | --- | --- |
-| 3.3V | VCC / Red wire | Main Power rail |
-| GND | GND / Black wire | Common ground |
-| Pin A0 (ADC) | Potentiometer Signal | Analog input |
-| Pin D5 (PWM) | Servo Signal | Control output |
-
-## Circuit Explanation
-This design reads analog signals from a sensor or potentiometer and maps the input value to control an output device like a servo motor or LED. 
-
-## Step-by-Step Assembly
-1. Connect power (3.3V) and ground (GND) to the breadboard side rails.
-2. Insert the potentiometer and connect its side legs to VCC and GND.
-3. Connect the middle leg of the potentiometer to Analog Pin A0.
-4. Connect your output device (e.g. servo signal pin) to Digital Pin D5.
-
-## Arduino / MCU Code
-\`\`\`cpp
-// Simulated project starter code
-const int inputPin = A0;
-const int outputPin = 5;
-
-void setup() {
-  Serial.begin(115200);
-  pinMode(outputPin, OUTPUT);
-}
-
-void loop() {
-  int value = analogRead(inputPin);
-  Serial.print("Sensor Value: ");
-  Serial.println(value);
-  
-  // Map value (0-1023) to PWM (0-255)
-  int outputVal = map(value, 0, 1023, 0, 255);
-  analogWrite(outputPin, outputVal);
-  delay(100);
-}
-\`\`\`
-
-## Testing & Troubleshooting
-- Use Serial Monitor to observe incoming sensor readings.
-- Check connections if the output device does not respond.
-
-## Optimization Suggestions
-- Use an ESP32 to send telemetry data via WiFi.
-
-## Safety Tips
-- Do not exceed 5V on analog input pins.
-
-## Final Checklist
-- Double-check VCC and GND connections to prevent shorts.
-- Upload sketch and check Serial Monitor.
-
-## Circuit JSON
-\`\`\`json
-{
-  "project": {
-    "title": "Analog Sensor Controller",
-    "description": "Reads a potentiometer value and maps it to control a servo motor output."
-  },
-  "components": [
-    { "id": "U1", "type": "Arduino Uno", "label": "Arduino Uno", "x": 150, "y": 200 },
-    { "id": "R1", "type": "Potentiometer", "label": "10k Pot", "x": 50, "y": 80 },
-    { "id": "M1", "type": "Servo", "label": "Micro Servo", "x": 650, "y": 80 },
-    { "id": "GND1", "type": "Ground", "label": "GND", "x": 350, "y": 480 }
-  ],
-  "connections": [
-    { "from": "U1:A0", "to": "R1:wiper" },
-    { "from": "U1:D5", "to": "M1:signal" },
-    { "from": "R1:left", "to": "U1:5V" },
-    { "from": "R1:right", "to": "GND1:gnd" },
-    { "from": "M1:vcc", "to": "U1:5V" },
-    { "from": "M1:gnd", "to": "GND1:gnd" }
-  ]
-}
-\`\`\``;
+    const model = generateMockProjectModel(lastUserMessage);
+    return compileProjectReport(model);
   }
+
 
   return `### CircuitMind AI (Simulated Local Mode)
 
@@ -410,10 +322,25 @@ Microcontroller: ${data.microcontroller || "auto-select"}
 Preferred components: ${data.preferred || "any"}
 Budget: ${data.budget || "flexible"}`;
     const content = await callGateway([
-      { role: "system", content: SYSTEM_PROMPT },
+      { role: "system", content: PLANNER_SYSTEM_PROMPT },
       { role: "user", content: prompt },
     ]);
-    return { content };
+
+    // If it returned a mock response, it is already compiled
+    if (content.includes("### CircuitMind AI")) {
+      return { content };
+    }
+
+    try {
+      // 1. Parse into structured project model
+      const model = parsePlannerOutput(content);
+      // 2. Generate final report with diagrams & code
+      const compiledMarkdown = compileProjectReport(model);
+      return { content: compiledMarkdown };
+    } catch (err: any) {
+      console.warn("Planner output parsing failed, returning raw model content:", err.message || err);
+      return { content };
+    }
   });
 
 export const optimizeCircuit = createServerFn({ method: "POST" })
