@@ -258,6 +258,36 @@ export const Canvas: React.FC = () => {
     return c.id.toLowerCase().includes(query) || c.type.toLowerCase().includes(query);
   };
 
+  const handleTouchStart = (e: React.TouchEvent<SVGSVGElement>) => {
+    if (e.touches.length !== 1) return;
+    const touch = e.touches[0];
+    const dummyEvent = {
+      button: 0,
+      clientX: touch.clientX,
+      clientY: touch.clientY,
+      preventDefault: () => {},
+      stopPropagation: () => {},
+      target: e.target,
+    } as any;
+    handleMouseDown(dummyEvent);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent<SVGSVGElement>) => {
+    if (e.touches.length !== 1) return;
+    const touch = e.touches[0];
+    const dummyEvent = {
+      clientX: touch.clientX,
+      clientY: touch.clientY,
+      preventDefault: () => {},
+      stopPropagation: () => {},
+    } as any;
+    handleMouseMove(dummyEvent);
+  };
+
+  const handleTouchEnd = () => {
+    handleMouseUp();
+  };
+
   return (
     <div className={`relative flex-1 bg-slate-900/5 dark:bg-slate-950/15 overflow-hidden ${
       isSpacePressed || toolMode === "pan" ? "cursor-grab active:cursor-grabbing" : "cursor-default"
@@ -271,6 +301,9 @@ export const Canvas: React.FC = () => {
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onWheel={handleWheel}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
       >
         <defs>
           {showGrid && (

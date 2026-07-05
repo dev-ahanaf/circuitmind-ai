@@ -192,10 +192,11 @@ export const Sidebar: React.FC = () => {
 
   const selectedWire = getSelectedWireDetails();
   const isOpen = !!(selectedComp || selectedWire);
-
   return (
-    <div className={`border-l border-border/40 bg-background/55 backdrop-blur-md flex flex-col h-full overflow-hidden transition-all duration-300 shrink-0 ${
-      isOpen ? "w-80 opacity-100" : "w-0 opacity-0 pointer-events-none"
+    <div className={`border-l border-border/40 bg-background/95 md:bg-background/55 backdrop-blur-md flex flex-col transition-all duration-300 shrink-0 ${
+      isOpen
+        ? "fixed bottom-0 left-0 right-0 h-[280px] w-full border-t border-l-0 z-30 shadow-[0_-10px_30px_-5px_rgba(0,0,0,0.3)] md:relative md:h-full md:w-80 opacity-100"
+        : "h-0 w-0 md:h-full md:w-0 opacity-0 pointer-events-none"
     }`}>
       <div className="flex items-center justify-between border-b border-border/40 p-4 min-w-[320px]">
         <h3 className="font-semibold text-foreground flex items-center gap-1.5">

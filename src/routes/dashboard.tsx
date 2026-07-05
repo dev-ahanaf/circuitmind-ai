@@ -143,10 +143,9 @@ function DashboardLayout() {
           </button>
         </div>
       </header>
-
       <div className="flex">
         <aside
-          className={`${open ? "block" : "hidden"} fixed inset-x-0 top-[57px] z-20 border-b border-border bg-background/95 backdrop-blur md:sticky md:top-0 md:z-auto md:flex md:h-screen md:w-64 md:shrink-0 md:border-b-0 md:border-r md:border-border/60 md:bg-transparent md:backdrop-blur-none`}
+          className={`${open ? "block" : "hidden"} fixed inset-x-0 top-[57px] bottom-0 z-20 overflow-y-auto border-b border-border bg-background/95 backdrop-blur md:sticky md:top-0 md:z-auto md:flex md:h-screen md:w-64 md:shrink-0 md:border-b-0 md:border-r md:border-border/60 md:bg-transparent md:backdrop-blur-none`}
         >
           <div className="flex h-full w-full flex-col p-4">
             <Link to="/dashboard" className="mb-6 hidden items-center gap-2 px-2 font-bold text-lg text-foreground md:flex">

@@ -234,7 +234,7 @@ function ChatPage() {
                             </div>
 
                             <Tabs defaultValue="diagram" className="w-full">
-                              <TabsList className="flex flex-wrap h-auto gap-1 bg-muted/50 p-1 mb-4 rounded-lg">
+                              <TabsList className="flex w-full overflow-x-auto justify-start flex-nowrap shrink-0 gap-1 bg-muted/50 p-1 mb-4 rounded-lg scrollbar-none">
                                 <TabsTrigger value="diagram" className="bg-gradient-brand/5 hover:bg-gradient-brand/10 data-[state=active]:bg-gradient-brand data-[state=active]:text-white">
                                   Interactive Circuit Diagram
                                 </TabsTrigger>

@@ -92,29 +92,29 @@ function DashboardHome() {
         </div>
 
         {/* 2. Premium AI Command Panel */}
-        <div className="mt-8 glass rounded-2xl p-6 border border-border/60">
-          <div className="relative">
+        <div className="mt-8 glass rounded-2xl p-6 border border-border/60">          <div className="relative">
             <textarea
-              className="w-full min-h-[90px] rounded-xl border border-border bg-card/45 p-4 pr-12 text-sm text-foreground outline-none placeholder:text-muted-foreground/75 focus:border-brand/45 focus:ring-1 focus:ring-brand/35 transition"
+              className="w-full min-h-[135px] pb-16 rounded-xl border border-border bg-card/45 p-4 text-sm text-foreground outline-none placeholder:text-muted-foreground/75 focus:border-brand/45 focus:ring-1 focus:ring-brand/35 transition"
               placeholder="Describe your circuit idea... e.g. Arduino Smart Door Lock with keypad and servo"
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
             />
-            <div className="absolute right-4 bottom-4 flex gap-2">
+            <div className="absolute right-4 bottom-4 flex flex-wrap gap-2 justify-end left-4 md:left-auto">
               <button
                 onClick={handleChat}
-                className="rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition"
+                className="rounded-lg border border-border bg-card px-2.5 py-1.5 text-[11px] md:text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition shrink-0"
               >
                 Open AI Assistant
               </button>
               <button
                 onClick={handleGenerate}
-                className="rounded-lg bg-brand px-3.5 py-1.5 text-xs font-semibold text-white hover:brightness-110 transition"
+                className="rounded-lg bg-brand px-3 py-1.5 text-[11px] md:text-xs font-semibold text-white hover:brightness-110 transition shrink-0"
               >
                 Generate New Circuit
               </button>
             </div>
           </div>
+
           <div className="mt-4 flex flex-wrap items-center gap-2">
             <span className="text-xs text-muted-foreground">Quick ideas:</span>
             <button
@@ -186,10 +186,10 @@ function DashboardHome() {
               </div>
               <div className="mt-4 divide-y divide-border/20">
                 {RECENT_PROJECTS.map((proj) => (
-                  <div key={proj.id} className="flex items-center justify-between py-3 first:pt-0 last:pb-0">
+                  <div key={proj.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 py-3 first:pt-0 last:pb-0">
                     <div>
                       <div className="font-semibold text-sm text-foreground">{proj.title}</div>
-                      <div className="flex items-center gap-2 mt-1">
+                      <div className="flex flex-wrap items-center gap-2 mt-1">
                         <span className="text-xs text-muted-foreground">{proj.type}</span>
                         <span className="text-[10px] text-muted-foreground/60">•</span>
                         <span className="text-xs text-muted-foreground">{proj.components} components</span>
@@ -197,7 +197,7 @@ function DashboardHome() {
                         <span className="text-xs text-muted-foreground/60">{proj.time}</span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 self-end sm:self-auto">
                       <span className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold ${proj.statusColor}`}>
                         {proj.status}
                       </span>
@@ -208,8 +208,7 @@ function DashboardHome() {
                         Open
                       </Link>
                     </div>
-                  </div>
-                ))}
+                  </div>                ))}
               </div>
             </div>
 

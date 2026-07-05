@@ -196,7 +196,7 @@ function GeneratorPage() {
                 )}
                 
                 <Tabs defaultValue="overview" className="w-full">
-                  <TabsList className="flex flex-wrap h-auto gap-1 bg-muted/50 p-1 mb-4 rounded-lg">
+                  <TabsList className="flex w-full overflow-x-auto justify-start flex-nowrap shrink-0 gap-1 bg-muted/50 p-1 mb-4 rounded-lg scrollbar-none">
                     <TabsTrigger value="overview">Overview</TabsTrigger>
                     <TabsTrigger value="components">Components</TabsTrigger>
                     <TabsTrigger value="wiring">Wiring</TabsTrigger>
