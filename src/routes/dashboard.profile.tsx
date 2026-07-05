@@ -19,6 +19,7 @@ function Profile() {
   const [fieldOfStudy, setFieldOfStudy] = useState("Electrical & Electronic Engineering");
   const [bio, setBio] = useState("Building circuits and coding MCUs.");
   const [favoriteMcu, setFavoriteMcu] = useState("Arduino Uno");
+  const [avatarUrl, setAvatarUrl] = useState("/developer-photo.jpg"); // default dev photo
 
   // Stats
   const [stats] = useState({
@@ -45,6 +46,7 @@ function Profile() {
             setFieldOfStudy(localData.fieldOfStudy || meta.field_of_study || "Electrical & Electronic Engineering");
             setBio(localData.bio || meta.bio || "Building circuits and coding MCUs.");
             setFavoriteMcu(localData.favoriteMcu || meta.favorite_mcu || "Arduino Uno");
+            setAvatarUrl(localData.avatarUrl || meta.avatar_url || "/developer-photo.jpg");
             return;
           } catch (e) {
             // ignore fallback issues
@@ -55,6 +57,7 @@ function Profile() {
         setFieldOfStudy(meta.field_of_study || "Electrical & Electronic Engineering");
         setBio(meta.bio || "Building circuits and coding MCUs.");
         setFavoriteMcu(meta.favorite_mcu || "Arduino Uno");
+        setAvatarUrl(meta.avatar_url || "/developer-photo.jpg");
       } else {
         // Fallback for bypassed developer session
         const localDataStr = localStorage.getItem("profile_dev");
@@ -65,6 +68,7 @@ function Profile() {
             setFieldOfStudy(localData.fieldOfStudy || "Electrical & Electronic Engineering");
             setBio(localData.bio || "Building circuits and coding MCUs.");
             setFavoriteMcu(localData.favoriteMcu || "Arduino Uno");
+            setAvatarUrl(localData.avatarUrl || "/developer-photo.jpg");
             return;
           } catch (e) {
             // ignore fallback issues
@@ -75,18 +79,39 @@ function Profile() {
         setFieldOfStudy("Electrical & Electronic Engineering");
         setBio("Building circuits and coding MCUs.");
         setFavoriteMcu("Arduino Uno");
+        setAvatarUrl("/developer-photo.jpg");
       }
     }
     loadProfile();
   }, []);
 
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        toast.error("Image file size must be less than 2MB.");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (typeof reader.result === "string") {
+          setAvatarUrl(reader.result);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   async function handleSave() {
     setLoading(true);
     try {
-      if (user) {
-        const localData = { displayName, fieldOfStudy, bio, favoriteMcu };
-        localStorage.setItem(`profile_${user.id || "dev"}`, JSON.stringify(localData));
+      const localData = { displayName, fieldOfStudy, bio, favoriteMcu, avatarUrl };
+      localStorage.setItem(`profile_${user?.id || "dev"}`, JSON.stringify(localData));
+      
+      // Dispatch storage event to alert sidebar/layout of profile change
+      window.dispatchEvent(new Event("storage"));
 
+      if (user) {
         if (user.email === "developer@circuitmind.local") {
           toast.success("Profile saved locally!");
         } else {
@@ -96,6 +121,7 @@ function Profile() {
               field_of_study: fieldOfStudy,
               bio: bio,
               favorite_mcu: favoriteMcu,
+              avatar_url: avatarUrl,
             },
           });
           if (error) throw error;
@@ -118,12 +144,23 @@ function Profile() {
       <div className="glass flex flex-col items-start justify-between gap-6 rounded-3xl p-8 md:flex-row md:items-center relative overflow-hidden">
         <div className="absolute right-0 top-0 -z-10 h-32 w-32 rounded-full bg-brand/10 blur-2xl" />
         <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
-          <div className="size-20 rounded-2xl overflow-hidden border border-border shadow-lg bg-secondary/30">
+          <div className="relative group size-20 rounded-2xl overflow-hidden border border-border shadow-lg bg-secondary/30 shrink-0">
             <img
-              src="/developer-photo.jpg"
+              src={avatarUrl}
               alt="Profile Avatar"
               className="size-full object-cover"
             />
+            {isEditing && (
+              <label className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center text-[10px] text-white font-semibold cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                <span>Upload</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatarChange}
+                  className="hidden"
+                />
+              </label>
+            )}
           </div>
           <div>
             <div className="flex flex-wrap items-center gap-2">

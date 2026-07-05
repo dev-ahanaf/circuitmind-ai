@@ -44,6 +44,7 @@ function DashboardLayout() {
   const [user, setUser] = useState<User | null>(null);
   const [open, setOpen] = useState(false);
   const [theme, setTheme] = useState<"dark" | "light">("dark");
+  const [avatarUrl, setAvatarUrl] = useState("/developer-photo.jpg");
   const navigate = useNavigate();
   const loc = useLocation();
 
@@ -65,19 +66,48 @@ function DashboardLayout() {
   };
 
   useEffect(() => {
-    supabase.auth.getUser().then((res: any) => {
-      const data = res?.data;
-      if (data?.user) {
-        setUser(data.user);
-      } else {
-        // Mock developer session for bypass mode
-        setUser({
-          id: "developer-session",
-          email: "developer@circuitmind.local",
-          user_metadata: { display_name: "Developer" },
-        } as any);
-      }
-    });
+    const handleStorageChange = () => {
+      supabase.auth.getUser().then((res: any) => {
+        const u = res?.data?.user;
+        if (u) {
+          setUser(u);
+          const localDataStr = localStorage.getItem(`profile_${u.id}`);
+          if (localDataStr) {
+            try {
+              const localData = JSON.parse(localDataStr);
+              if (localData.avatarUrl) {
+                setAvatarUrl(localData.avatarUrl);
+                return;
+              }
+            } catch (e) {}
+          }
+          setAvatarUrl(u.user_metadata?.avatar_url || "/developer-photo.jpg");
+        } else {
+          // Mock developer session for bypass mode
+          const mockUser = {
+            id: "developer-session",
+            email: "developer@circuitmind.local",
+            user_metadata: { display_name: "Developer" },
+          } as any;
+          setUser(mockUser);
+          const localDataStr = localStorage.getItem("profile_dev");
+          if (localDataStr) {
+            try {
+              const localData = JSON.parse(localDataStr);
+              if (localData.avatarUrl) {
+                setAvatarUrl(localData.avatarUrl);
+                return;
+              }
+            } catch (e) {}
+          }
+          setAvatarUrl("/developer-photo.jpg");
+        }
+      });
+    };
+
+    handleStorageChange();
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
   useEffect(() => setOpen(false), [loc.pathname]);
@@ -194,7 +224,7 @@ function DashboardLayout() {
               <div className="mt-4 flex items-center gap-2.5 rounded-xl border border-border/40 bg-card/25 p-2 px-2.5">
                 <div className="size-8 rounded-full overflow-hidden border border-border/50 shadow-inner bg-secondary shrink-0">
                   <img
-                    src="/developer-photo.jpg"
+                    src={avatarUrl}
                     alt="Profile Avatar"
                     className="size-full object-cover"
                   />
