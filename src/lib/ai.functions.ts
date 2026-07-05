@@ -103,25 +103,69 @@ function simulateMockResponse(messages: Array<{ role: string; content: string }>
   }
 
   if (query.includes("optimize") || query.includes("bom")) {
-    return `# BOM Optimization Analysis (Simulated)
+    return `# CircuitMind AI BOM Optimization Report
+_Designed and developed by Fayek Ahanaf, Computing and Information Systems (CIS) student of Daffodil International University_
 
-## Analysis
-Your Bill of Materials has been reviewed. Here are some optimized recommendations.
+## 1. Short Summary
+Your Bill of Materials is functional but can be optimized for safety, reliability, and cost. Keeping the ESP32 is recommended for native wireless support, while upgrading regulators and load-switching relays ensures electrical safety.
 
-## Cheaper Alternatives
-| Component | Original Price (BDT) | Recommended Alternative | Alternative Price (BDT) | Saving (BDT) |
-| --- | --- | --- | --- | --- |
-| Arduino Uno | ৳1800 | ESP32 NodeMCU | ৳500 | ৳1300 |
-| DHT22 Sensor | ৳750 | DHT11 Sensor | ৳250 | ৳500 |
+## 2. Original BOM Cost
+Original Cost: ৳2,840 BDT
 
-## Lower Power
-- Replace Arduino Uno with ESP32 and use Deep Sleep mode to reduce standby current from 50mA to 15µA.
+## 3. Key Problems Found
+- Direct 5V sensor outputs connected directly to 3.3V ESP32 GPIO.
+- Missing common ground between battery pack and MCU logic.
+- Inductive load (water pump) powered directly from ESP32 output pin.
+- High-current relays powered directly without separate regulator rails.
 
-## Better Wiring
-- Use I2C protocol instead of parallel pins for LCD displays to reduce wire count from 12 to 4.
+## 4. Recommended Optimizations
+| Current Component | Current Price | Recommended Alternative | New Price | Savings | Reason | Status |
+| --- | --- | --- | --- | --- | --- | --- |
+| LDR Sensor Module | ৳120 | Bare LDR + 10k resistor | ৳25 | ৳95 | Simpler, low cost | Recommended |
+| 5V Relay direct trigger | ৳80 | Optocoupled 3.3V Relay | ৳90 | -৳10 | Necessary for ESP32 3.3V compatibility | Recommended |
+| Direct MCU Pump Power | ৳350 | Transistor Switch (IRLZ44N) | ৳50 | ৳300 | Prevents MCU brownout | Recommended |
 
-## Summary
-By switching to ESP32 and I2C LCD, you save ৳1800 and reduce wiring complexity significantly.`;
+## 5. Conditional Low-Cost Alternatives
+- DHT22 (৳250) ➜ DHT11 (৳100) | Status: Conditional | Reason: Cheaper but lowers temperature accuracy.
+
+## 6. Not Recommended Replacements
+- Parallel 16x2 LCD instead of I2C LCD | Status: Not Recommended | Reason: Increases wiring count from 4 pins to 12.
+- Zener diode regulator instead of Buck Converter | Status: Not Recommended | Reason: Unsafe for ESP32 and high-current loads.
+
+## 7. Power System Recommendation
+- Power the ESP32 via a 5V VIN rail generated from a LM2596 buck converter connected to the 12V adapter.
+- Provide a common ground between the 12V supply, Buck converter, ESP32, and relays.
+- Switch the 5V water pump using an optocoupled relay or IRLZ44N logic-level MOSFET.
+
+## 8. Wiring Simplification
+- Share the I2C bus (SDA: GPIO21, SCL: GPIO22) between the LCD and sensor backpacks.
+- Connect the bare LDR with a 10k resistor divider to ADC pin GPIO34.
+
+## 9. Final Optimized BOM Table
+| Component | Qty | Specification | Unit Price BDT | Total BDT | Purpose | Notes |
+| --- | --- | --- | --- | --- | --- | --- |
+| ESP32 Dev Board | 1 | NodeMCU-32S | ৳500 | ৳500 | Main controller | Unified I/O |
+| DHT22 Sensor | 1 | AM2302 digital | ৳250 | ৳250 | Env reader | Standard accuracy |
+| I2C LCD 16x2 | 1 | 1602 with I2C backpack | ৳240 | ৳240 | Display metrics | Share SDA/SCL lines |
+| Bare LDR | 1 | Light dependent resistor | ৳10 | ৳10 | Ambient light check | Requires 10k divider |
+| Resistor 10k | 2 | Metal Film 1/4W | ৳5 | ৳10 | Pull-up/divider | For LDR and DHT |
+| LM2596 Converter | 1 | DC-DC Step-Down | ৳120 | ৳120 | 5V Regulator | Powers ESP32 and Relays |
+| IRLZ44N MOSFET | 2 | Logic-level N-Ch | ৳50 | ৳100 | Load Switch | Safe direct GPIO drive |
+| 12V DC Adapter | 1 | 12V 2A Adapter | ৳350 | ৳350 | Main supply | Direct pump power source |
+
+## 10. Cost Comparison
+Original Cost: ৳2,840 BDT
+Optimized Cost: ৳1,880 BDT
+Total Savings: ৳960 BDT
+Savings Percentage: 33.8%
+
+## 11. Safety Notes
+- Ensure the ESP32 GPIOs never receive direct 5V input logic signals.
+- Check that the IRLZ44N gate threshold (Vgs) is fully turned on at 3.3V logic.
+- Confirm all ground rails share a common reference ground point.
+
+## 12. Engineering Recommendation
+This optimized BOM keeps the ESP32 for wireless logging, uses a 12V adapter power source for the pump, steps down voltage safely using an LM2596 converter, and drives high-current loads safely using logic-level MOSFETs. This yields a safer and lower-cost design without losing any functionality.`;
   }
 
   if (lastUserMessage.toLowerCase().includes("circuit") || lastUserMessage.toLowerCase().includes("design") || lastUserMessage.toLowerCase().includes("wiring") || lastUserMessage.length > 50) {
@@ -353,7 +397,44 @@ export const optimizeCircuit = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data }) => {
-    const system = `You are CircuitMind Optimizer, a module of CircuitMind AI designed and developed by Fayek Ahanaf. Given a Bill of Materials, suggest cheaper alternatives, lower-power equivalents, higher-efficiency parts, and simpler wiring. Respond in Markdown with sections: Analysis, Cheaper Alternatives (table), Lower Power (table), Better Wiring, Summary.`;
+    const system = `You are CircuitMind AI Optimizer, a professional electronics BOM optimization and engineering review engine.
+
+CircuitMind AI was designed and developed by Fayek Ahanaf, a Computing and Information Systems (CIS) student of Daffodil International University.
+
+Your job is to analyze electronics project BOMs and optimize them for:
+- cost reduction
+- safety
+- reliability
+- wiring simplicity
+- power efficiency
+- component availability
+- beginner buildability
+- engineering correctness
+
+Important:
+Do not blindly choose the cheapest component.
+Do not reduce core project functionality unless the user asks for a low-cost version.
+Do not recommend unsafe power solutions.
+Do not recommend replacements that create voltage, current, GPIO, or wiring problems.
+The best optimized BOM is the lowest-cost BOM that remains safe, reliable, buildable, and meets the original project requirements.
+
+Output format:
+Return the optimization report in this exact structure:
+1. Short Summary
+2. Original BOM Cost (e.g. ৳X BDT)
+3. Key Problems Found
+4. Recommended Optimizations (table: Current Component | Current Price | Recommended Alternative | New Price | Savings | Reason | Status)
+5. Conditional Low-Cost Alternatives
+6. Not Recommended Replacements
+7. Power System Recommendation
+8. Wiring Simplification
+9. Final Optimized BOM Table (Component | Qty | Specification | Unit Price BDT | Total BDT | Purpose | Notes)
+10. Cost Comparison (Original Cost, Optimized Cost, Total Savings, Savings Percentage)
+11. Safety Notes
+12. Engineering Recommendation
+
+Use Bangladeshi Taka symbol correctly (e.g. ৳1,680 BDT). Never output corrupted characters.`;
+
     const content = await callGateway([
       { role: "system", content: system },
       {
