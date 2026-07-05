@@ -7,6 +7,7 @@ import { parseMarkdownSections } from "@/utils/parser";
 import { CircuitRenderer } from "@/components/CircuitRenderer/CircuitRenderer";
 import { Cable, Loader2, Sparkles, Download, Info } from "lucide-react";
 import { exportProjectPDF, exportProjectJSON, exportProjectCode } from "@/utils/pdfExport";
+import { addToHistory } from "@/utils/history";
 
 export const Route = createFileRoute("/dashboard/generator")({
   component: GeneratorPage,
@@ -21,7 +22,27 @@ function GeneratorPage() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const desc = params.get("desc");
-    if (desc) {
+    const historyId = params.get("historyId");
+    
+    if (historyId) {
+      try {
+        const raw = localStorage.getItem("circuitmind_history");
+        const list = raw ? JSON.parse(raw) : [];
+        const item = list.find((x: any) => x.id === historyId);
+        if (item) {
+          setForm({
+            description: item.query,
+            voltage: "",
+            microcontroller: "",
+            preferred: "",
+            budget: ""
+          });
+          setResult(item.markdown);
+        }
+      } catch (e) {
+        console.error("Failed to load history item:", e);
+      }
+    } else if (desc) {
       setForm((prev) => ({ ...prev, description: desc }));
     }
   }, []);
@@ -33,6 +54,14 @@ function GeneratorPage() {
     try {
       const { content } = await generateCircuit({ data: form });
       setResult(content);
+      const parsed = parseMarkdownSections(content);
+      addToHistory({
+        title: form.description ? `Circuit: ${form.description.slice(0, 30)}...` : "Circuit Design",
+        query: form.description,
+        markdown: content,
+        circuitJson: parsed.circuitJson,
+        type: "Generator"
+      });
     } catch (err) {
       setResult("⚠️ Failed to generate: " + (err as Error).message);
     } finally {

@@ -1,19 +1,27 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { History } from "lucide-react";
+import { getHistory, type HistoryItem } from "@/utils/history";
+import { useEffect, useState } from "react";
 
 export const Route = createFileRoute("/dashboard/history")({
   component: HistoryPage,
 });
 
-const ITEMS = [
-  { title: "Line Following Robot", when: "2h ago", tokens: 1420 },
-  { title: "ESP32 Home Automation", when: "Yesterday", tokens: 2109 },
-  { title: "555 Timer Blinker", when: "2d ago", tokens: 812 },
-  { title: "Smart Irrigation", when: "5d ago", tokens: 1740 },
-  { title: "Bluetooth Car", when: "1w ago", tokens: 998 },
-];
-
 function HistoryPage() {
+  const [items, setItems] = useState<HistoryItem[]>([]);
+
+  useEffect(() => {
+    setItems(getHistory());
+  }, []);
+
+  const handleOpen = (item: HistoryItem) => {
+    if (!item.markdown) {
+      window.location.href = `/dashboard/templates/${item.id}`;
+    } else {
+      window.location.href = `/dashboard/generator?historyId=${item.id}`;
+    }
+  };
+
   return (
     <div className="mx-auto max-w-4xl p-6 md:p-10">
       <div className="flex items-center gap-3">
@@ -24,15 +32,24 @@ function HistoryPage() {
         </div>
       </div>
       <div className="glass mt-6 divide-y divide-border rounded-2xl">
-        {ITEMS.map((i) => (
-          <div key={i.title} className="flex items-center justify-between px-5 py-3.5 text-sm">
-            <div>
-              <div className="font-medium">{i.title}</div>
-              <div className="text-xs text-muted-foreground">{i.when} · {i.tokens} tokens</div>
+        {items.length === 0 ? (
+          <div className="p-8 text-center text-sm text-muted-foreground">No recent history records found.</div>
+        ) : (
+          items.map((i) => (
+            <div key={i.id} className="flex items-center justify-between px-5 py-3.5 text-sm">
+              <div>
+                <div className="font-medium text-foreground">{i.title}</div>
+                <div className="text-xs text-muted-foreground">{i.when} · {i.tokens} tokens · {i.type}</div>
+              </div>
+              <button 
+                onClick={() => handleOpen(i)}
+                className="rounded-md border border-border px-3 py-1 text-xs hover:bg-accent text-foreground transition"
+              >
+                Open
+              </button>
             </div>
-            <button className="rounded-md border border-border px-2 py-1 text-xs hover:bg-accent">Open</button>
-          </div>
-        ))}
+          ))
+        )}
       </div>
     </div>
   );

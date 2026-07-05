@@ -10,6 +10,7 @@ import { CircuitRenderer } from "@/components/CircuitRenderer/CircuitRenderer";
 import { parseMarkdownSections } from "@/utils/parser";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { exportProjectPDF, exportProjectJSON, exportProjectCode } from "@/utils/pdfExport";
+import { addToHistory } from "@/utils/history";
 
 function stripJsonBlock(markdown: string): string {
   if (!markdown) return "";
@@ -54,6 +55,20 @@ function ChatPage() {
     try {
       const { content } = await chatCompletion({ data: { messages: next } });
       setMessages([...next, { role: "assistant", content }]);
+      try {
+        const parsed = parseMarkdownSections(content);
+        if (parsed && parsed.circuitJson) {
+          addToHistory({
+            title: parsed.project?.title || `Chat: ${text.slice(0, 30)}...`,
+            query: text,
+            markdown: content,
+            circuitJson: parsed.circuitJson,
+            type: "Chat"
+          });
+        }
+      } catch (e) {
+        console.warn("Failed to save chat to history:", e);
+      }
     } catch (err) {
       setMessages([
         ...next,
