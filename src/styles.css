@@ -270,6 +270,10 @@ html {
   background: #ffffff !important;
 }
 
+#circuit-diagram-export rect {
+  fill: #ffffff !important;
+}
+
 #circuit-diagram-export rect#grid-rect {
   fill: #ffffff !important;
 }
