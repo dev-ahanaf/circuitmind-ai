@@ -119,11 +119,11 @@ function DashboardLayout() {
           className={`${open ? "block" : "hidden"} fixed inset-x-0 top-[57px] z-20 border-b border-border bg-background/95 backdrop-blur md:sticky md:top-0 md:z-auto md:flex md:h-screen md:w-64 md:shrink-0 md:border-b-0 md:border-r md:border-border/60 md:bg-transparent md:backdrop-blur-none`}
         >
           <div className="flex h-full w-full flex-col p-4">
-            <Link to="/dashboard" className="mb-6 hidden items-center gap-2 px-2 font-semibold md:flex">
+            <Link to="/dashboard" className="mb-6 hidden items-center gap-2 px-2 font-bold text-lg text-foreground md:flex">
               <BrandMark size={32} />
-              CircuitMind AI
+              <span>CircuitMind <span className="text-brand">AI</span></span>
             </Link>
-            <nav className="space-y-0.5">
+            <nav className="space-y-1">
               {NAV.map((item) => {
                 const active = item.exact
                   ? loc.pathname === item.to
@@ -132,28 +132,31 @@ function DashboardLayout() {
                   <Link
                     key={item.to}
                     to={item.to}
-                    className={`group flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition ${
+                    className={`group flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all duration-200 border ${
                       active
-                        ? "bg-gradient-brand/15 text-foreground border border-brand/30"
-                        : "text-muted-foreground hover:bg-card hover:text-foreground"
+                        ? "bg-gradient-brand-soft text-foreground border-brand/35 shadow-[0_2px_12px_-3px_oklch(0.68_0.2_275/0.2)]"
+                        : "text-muted-foreground border-transparent hover:bg-card hover:text-foreground"
                     }`}
                   >
-                    <item.icon className={`size-4 ${active ? "text-brand" : ""}`} />
+                    <item.icon className={`size-4 transition-transform duration-200 group-hover:scale-105 ${active ? "text-brand" : "text-muted-foreground/75 group-hover:text-foreground"}`} />
                     {item.label}
                   </Link>
                 );
               })}
             </nav>
 
-            <div className="mt-6 rounded-xl border border-border bg-card/60 p-3">
-              <div className="flex items-center gap-2 text-xs font-medium">
-                <Sparkles className="size-3.5 text-brand" /> Free plan
+            <div className="mt-6 rounded-xl border border-brand/25 bg-gradient-to-b from-brand/5 to-transparent p-4">
+              <div className="flex items-center justify-between text-xs font-semibold">
+                <span className="flex items-center gap-1.5 text-foreground">
+                  <Sparkles className="size-3.5 text-brand animate-pulse" /> Free Plan
+                </span>
+                <span className="text-brand">70%</span>
               </div>
-              <div className="mt-2 text-xs text-muted-foreground">7 / 10 generations used this month</div>
-              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-secondary">
+              <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-secondary">
                 <div className="h-full w-[70%] bg-gradient-brand" />
               </div>
-              <button className="mt-3 w-full rounded-md bg-gradient-brand py-1.5 text-xs font-medium text-white hover:brightness-110">
+              <div className="mt-1.5 text-[10px] text-muted-foreground">7 / 10 generations used this month</div>
+              <button className="button-glow-effect mt-3 w-full rounded-lg bg-gradient-brand py-2 text-xs font-semibold text-white hover:brightness-110 transition">
                 Upgrade to Pro
               </button>
             </div>
@@ -176,7 +179,7 @@ function DashboardLayout() {
                 className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-card hover:text-foreground transition mb-1"
               >
                 {theme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
-                Theme: {theme === "dark" ? "Light Mode" : "Dark Mode"}
+                Theme: {theme === "dark" ? "Dark Mode" : "Light Mode"}
               </button>
               <button
                 onClick={signOut}
@@ -184,15 +187,16 @@ function DashboardLayout() {
               >
                 <LogOut className="size-4" /> Sign out
               </button>
-              <div className="mt-3 flex items-center gap-2 rounded-lg px-2 py-2">
-                <div className="grid size-8 place-items-center rounded-full bg-gradient-brand text-xs font-semibold text-white">
+              
+              <div className="mt-4 flex items-center gap-2.5 rounded-xl border border-border/40 bg-card/25 p-2 px-2.5">
+                <div className="grid size-8 place-items-center rounded-full bg-gradient-brand text-xs font-bold text-white shadow-inner">
                   {(user?.email || "?").slice(0, 1).toUpperCase()}
                 </div>
-                <div className="min-w-0 text-xs">
-                  <div className="truncate text-foreground">
-                    {user?.user_metadata?.display_name || user?.email?.split("@")[0] || "User"}
+                <div className="min-w-0 text-xs flex-1">
+                  <div className="truncate font-semibold text-foreground leading-tight">
+                    {user?.user_metadata?.display_name || user?.email?.split("@")[0] || "Developer"}
                   </div>
-                  <div className="truncate text-muted-foreground">{user?.email}</div>
+                  <div className="truncate text-[10px] text-muted-foreground leading-none mt-0.5">{user?.email}</div>
                 </div>
               </div>
             </div>

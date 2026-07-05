@@ -51,12 +51,41 @@ export const Toolbar: React.FC = () => {
   const handleZoomIn = () => setZoom((z) => Math.min(4, z * 1.15));
   const handleZoomOut = () => setZoom((z) => Math.max(0.2, z / 1.15));
 
+  // Helper to extract CSS rules and embed them inside the SVG clone
+  const getStyledSVGSource = (svgElem: HTMLElement): string => {
+    const svgClone = svgElem.cloneNode(true) as SVGSVGElement;
+
+    if (!svgClone.getAttribute("width")) svgClone.setAttribute("width", "100%");
+    if (!svgClone.getAttribute("height")) svgClone.setAttribute("height", "100%");
+
+    let styles = "";
+    try {
+      for (const sheet of Array.from(document.styleSheets)) {
+        try {
+          for (const rule of Array.from(sheet.cssRules)) {
+            styles += rule.cssText + "\n";
+          }
+        } catch (e) {
+          // Ignore cross-origin stylesheet errors
+        }
+      }
+    } catch (e) {
+      // Ignore styles extraction errors
+    }
+
+    const styleElem = document.createElementNS("http://www.w3.org/2000/svg", "style");
+    styleElem.textContent = styles;
+    svgClone.insertBefore(styleElem, svgClone.firstChild);
+
+    const serializer = new XMLSerializer();
+    return serializer.serializeToString(svgClone);
+  };
+
   // Exporters
   const exportSVG = () => {
     const svgElem = document.getElementById("schematic-svg");
     if (!svgElem) return;
-    const serializer = new XMLSerializer();
-    let source = serializer.serializeToString(svgElem);
+    let source = getStyledSVGSource(svgElem);
     source = '<?xml version="1.0" standalone="no"?>\r\n' + source;
     const url = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(source);
     const trigger = document.createElement("a");
@@ -68,8 +97,7 @@ export const Toolbar: React.FC = () => {
   const exportPNG = () => {
     const svgElem = document.getElementById("schematic-svg");
     if (!svgElem) return;
-    const serializer = new XMLSerializer();
-    const source = serializer.serializeToString(svgElem);
+    const source = getStyledSVGSource(svgElem);
     const img = new Image();
     img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(source);
     img.onload = () => {
@@ -94,7 +122,7 @@ export const Toolbar: React.FC = () => {
     const svgElem = document.getElementById("schematic-svg");
     const printWindow = window.open("", "_blank");
     if (!printWindow || !svgElem) return;
-    const source = new XMLSerializer().serializeToString(svgElem);
+    const source = getStyledSVGSource(svgElem);
     printWindow.document.write(`
       <html>
         <head>

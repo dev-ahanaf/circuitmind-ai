@@ -28,7 +28,7 @@ function TemplatesPage() {
       <div className="mt-6 grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
         {filtered.map((t) => (
           <Link key={t.id} to="/dashboard/templates/$id" params={{ id: t.id }} className="glass group rounded-2xl p-5 hover:border-brand/50 transition">
-            <div className="flex items-center justify-between text-xs"><span className="rounded-full bg-secondary/50 px-2 py-0.5">{t.category}</span><span className="text-muted-foreground">${t.cost} · {t.difficulty}</span></div>
+            <div className="flex items-center justify-between text-xs"><span className="rounded-full bg-secondary/50 px-2 py-0.5">{t.category}</span><span className="text-muted-foreground">৳{t.cost} · {t.difficulty}</span></div>
             <div className="mt-3 font-semibold">{t.title}</div>
             <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{t.description}</p>
             <div className="mt-3 flex flex-wrap gap-1">{t.components.slice(0, 4).map((c) => (<span key={c} className="rounded-md border border-border px-1.5 py-0.5 text-[10px] text-muted-foreground">{c}</span>))}</div>

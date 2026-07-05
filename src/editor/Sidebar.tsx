@@ -191,10 +191,13 @@ export const Sidebar: React.FC = () => {
   };
 
   const selectedWire = getSelectedWireDetails();
+  const isOpen = !!(selectedComp || selectedWire);
 
   return (
-    <div className="w-80 border-l border-border/40 bg-background/55 backdrop-blur-md flex flex-col h-full overflow-hidden transition-all duration-300">
-      <div className="flex items-center justify-between border-b border-border/40 p-4">
+    <div className={`border-l border-border/40 bg-background/55 backdrop-blur-md flex flex-col h-full overflow-hidden transition-all duration-300 shrink-0 ${
+      isOpen ? "w-80 opacity-100" : "w-0 opacity-0 pointer-events-none"
+    }`}>
+      <div className="flex items-center justify-between border-b border-border/40 p-4 min-w-[320px]">
         <h3 className="font-semibold text-foreground flex items-center gap-1.5">
           <Info className="size-4 text-brand" /> Inspector Panel
         </h3>
@@ -208,7 +211,7 @@ export const Sidebar: React.FC = () => {
         )}
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 text-xs">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 text-xs min-w-[320px]">
         {selectedComp ? (
           // 1. Component Inspector Mode
           <div className="space-y-4">

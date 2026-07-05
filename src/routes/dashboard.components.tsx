@@ -36,7 +36,7 @@ function ComponentsPage() {
       <div className="mt-6 grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
         {filtered.map((c) => (
           <Link key={c.id} to="/dashboard/components/$id" params={{ id: c.id }} className="glass rounded-2xl p-4 hover:border-brand/50 transition">
-            <div className="flex items-center justify-between text-xs"><span className="rounded-full bg-secondary/50 px-2 py-0.5">{c.category}</span><span className="text-muted-foreground">${c.price.toFixed(2)}</span></div>
+            <div className="flex items-center justify-between text-xs"><span className="rounded-full bg-secondary/50 px-2 py-0.5">{c.category}</span><span className="text-muted-foreground">৳{c.price.toFixed(0)}</span></div>
             <div className="mt-3 font-semibold">{c.name}</div>
             <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{c.description}</p>
             <div className="mt-3 flex gap-3 text-xs text-muted-foreground"><span>⚡ {c.voltage}</span><span>🔌 {c.current}</span></div>

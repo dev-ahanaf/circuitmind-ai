@@ -12,11 +12,11 @@ When a user describes a project, respond in this structure (use Markdown, headin
 A concise paragraph.
 
 **Difficulty:** Beginner / Intermediate / Advanced
-**Estimated Cost:** in USD
+**Estimated Cost:** in BDT (Bangladeshi Taka, ৳)
 **Time to build:** in hours
 
 ## Required Components
-Markdown table: Component | Qty | Purpose | Approx. Price
+Markdown table: Component | Qty | Purpose | Approx. Price (BDT)
 
 ## Wiring Connections
 Markdown table: From (MCU pin) | To (Component pin) | Notes
@@ -80,10 +80,10 @@ function simulateMockResponse(messages: Array<{ role: string; content: string }>
 Your Bill of Materials has been reviewed. Here are some optimized recommendations.
 
 ## Cheaper Alternatives
-| Component | Original Price | Recommended Alternative | Alternative Price | Saving |
+| Component | Original Price (BDT) | Recommended Alternative | Alternative Price (BDT) | Saving (BDT) |
 | --- | --- | --- | --- | --- |
-| Arduino Uno | $23.00 | ESP32 NodeMCU | $6.00 | $17.00 |
-| DHT22 Sensor | $9.00 | DHT11 Sensor | $3.00 | $6.00 |
+| Arduino Uno | ৳1800 | ESP32 NodeMCU | ৳500 | ৳1300 |
+| DHT22 Sensor | ৳750 | DHT11 Sensor | ৳250 | ৳500 |
 
 ## Lower Power
 - Replace Arduino Uno with ESP32 and use Deep Sleep mode to reduce standby current from 50mA to 15µA.
@@ -92,7 +92,7 @@ Your Bill of Materials has been reviewed. Here are some optimized recommendation
 - Use I2C protocol instead of parallel pins for LCD displays to reduce wire count from 12 to 4.
 
 ## Summary
-By switching to ESP32 and I2C LCD, you save $23.00 and reduce wiring complexity significantly.`;
+By switching to ESP32 and I2C LCD, you save ৳1800 and reduce wiring complexity significantly.`;
   }
 
   if (lastUserMessage.toLowerCase().includes("circuit") || lastUserMessage.toLowerCase().includes("design") || lastUserMessage.toLowerCase().includes("wiring") || lastUserMessage.length > 50) {
@@ -100,17 +100,17 @@ By switching to ESP32 and I2C LCD, you save $23.00 and reduce wiring complexity 
 This is a simulated circuit design for your project: **${lastUserMessage.slice(0, 100)}${lastUserMessage.length > 100 ? "..." : ""}**.
 
 **Difficulty:** Intermediate
-**Estimated Cost:** $15.00
+**Estimated Cost:** ৳1800
 **Time to build:** 3 hours
 
 ## Required Components
-| Component | Qty | Purpose | Approx. Price |
+| Component | Qty | Purpose | Approx. Price (BDT) |
 | --- | --- | --- | --- |
-| Microcontroller (e.g. ESP32 / Arduino) | 1 | Processing | $6.00 |
-| Breadboard & Jumper wires | 1 | Prototyping | $4.00 |
-| 10k Ohm Potentiometer | 1 | Input Control | $1.50 |
-| Resistors (220 Ohm, 10k Ohm) | 5 | Safety / Pull-up | $1.00 |
-| Servo Motor / LED / Buzzer | 1 | Actuator/Indicator | $2.50 |
+| Microcontroller (e.g. ESP32 / Arduino) | 1 | Processing | ৳500 |
+| Breadboard & Jumper wires | 1 | Prototyping | ৳300 |
+| 10k Ohm Potentiometer | 1 | Input Control | ৳120 |
+| Resistors (220 Ohm, 10k Ohm) | 5 | Safety / Pull-up | ৳80 |
+| Servo Motor / LED / Buzzer | 1 | Actuator/Indicator | ৳200 |
 
 ## Wiring Connections
 | From (MCU pin) | To (Component pin) | Notes |

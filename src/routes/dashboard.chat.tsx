@@ -9,6 +9,7 @@ import { exportMarkdownToPDF } from "@/lib/utils";
 import { CircuitRenderer } from "@/components/CircuitRenderer/CircuitRenderer";
 import { parseMarkdownSections } from "@/utils/parser";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { exportProjectPDF, exportProjectJSON, exportProjectCode } from "@/utils/pdfExport";
 
 function stripJsonBlock(markdown: string): string {
   if (!markdown) return "";
@@ -27,7 +28,18 @@ function ChatPage() {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const scrollerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const msg = params.get("msg");
+    if (msg) {
+      send(msg);
+      // Clean query parameter to prevent duplicate submits on reload
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
 
   useEffect(() => {
     scrollerRef.current?.scrollTo({ top: scrollerRef.current.scrollHeight, behavior: "smooth" });
@@ -60,9 +72,21 @@ function ChatPage() {
 
   function exportChat() {
     const md = messages
-      .map((m) => `# ${m.role === "user" ? "User Query" : "CircuitMind AI"}\n\n${m.content}`)
+      .map((m) => `# ${m.role === "user" ? "User Query" : "CircuitMind AI"}\n\n${stripJsonBlock(m.content)}`)
       .join("\n\n---\n\n");
     exportMarkdownToPDF("CircuitMind AI Chat Session", md);
+  }
+
+  async function handleMessageExportPDF(parsed: any, rawContent: string, index: number) {
+    setExporting(true);
+    await exportProjectPDF({
+      title: parsed.project?.title || "Circuit Design",
+      query: messages[index - 1]?.content || parsed.project?.description || "User Query",
+      markdown: rawContent,
+      circuitJson: parsed.circuitJson,
+      elementId: `chat-diagram-export-${index}`
+    });
+    setExporting(false);
   }
 
   const empty = messages.length === 0;
@@ -152,6 +176,41 @@ function ChatPage() {
                       if (parsed && parsed.circuitJson) {
                         return (
                           <div className="glass rounded-xl p-5 w-full space-y-4 overflow-hidden">
+                            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/40 pb-2">
+                              <div className="text-sm font-semibold text-foreground">Generated Project Output</div>
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() => handleMessageExportPDF(parsed, m.content, i)}
+                                  disabled={exporting}
+                                  className="inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-xs hover:bg-accent disabled:opacity-50"
+                                >
+                                  {exporting ? <Loader2 className="size-3.5 animate-spin" /> : <Download className="size-3.5" />}
+                                  {exporting ? "Generating PDF..." : "Export PDF"}
+                                </button>
+                                <button
+                                  onClick={() => exportProjectJSON(parsed.project?.title || "Circuit Design", parsed.circuitJson)}
+                                  className="inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-xs hover:bg-accent"
+                                >
+                                  <Download className="size-3.5" /> Export JSON
+                                </button>
+                                {parsed.code && (
+                                  <button
+                                    onClick={() => exportProjectCode(parsed.project?.title || "Circuit Design", parsed.code)}
+                                    className="inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-xs hover:bg-accent"
+                                  >
+                                    <Download className="size-3.5" /> Export Code
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                            
+                            {/* Hidden container for diagram image capture during PDF generation */}
+                            <div className="absolute -left-[9999px] top-0 pointer-events-none" style={{ width: "1000px", height: "600px", zIndex: -1000 }}>
+                              <div id={`chat-diagram-export-${i}`} className="bg-white p-6 rounded-xl" style={{ width: "1000px", height: "600px", background: "#ffffff" }}>
+                                <CircuitRenderer data={parsed.circuitJson} />
+                              </div>
+                            </div>
+
                             <Tabs defaultValue="diagram" className="w-full">
                               <TabsList className="flex flex-wrap h-auto gap-1 bg-muted/50 p-1 mb-4 rounded-lg">
                                 <TabsTrigger value="diagram" className="bg-gradient-brand/5 hover:bg-gradient-brand/10 data-[state=active]:bg-gradient-brand data-[state=active]:text-white">

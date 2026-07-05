@@ -22,7 +22,7 @@ function ComponentDetail() {
           <h1 className="mt-1 text-3xl font-semibold tracking-tight">{c.name}</h1>
           <p className="mt-2 max-w-xl text-muted-foreground">{c.description}</p>
         </div>
-        <div className="text-right"><div className="text-3xl font-semibold text-gradient-brand">${c.price.toFixed(2)}</div><div className="text-xs text-muted-foreground">approx. street price</div></div>
+        <div className="text-right"><div className="text-3xl font-semibold text-gradient-brand">৳{c.price.toFixed(0)}</div><div className="text-xs text-muted-foreground">approx. street price</div></div>
       </div>
       <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-3">
         <Card title="Voltage">{c.voltage}</Card>

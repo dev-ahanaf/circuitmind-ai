@@ -1,12 +1,12 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { generateCircuit } from "@/lib/ai.functions";
 import { Markdown } from "@/components/markdown";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { parseMarkdownSections } from "@/utils/parser";
 import { CircuitRenderer } from "@/components/CircuitRenderer/CircuitRenderer";
 import { Cable, Loader2, Sparkles, Download, Info } from "lucide-react";
-import { exportMarkdownToPDF } from "@/lib/utils";
+import { exportProjectPDF, exportProjectJSON, exportProjectCode } from "@/utils/pdfExport";
 
 export const Route = createFileRoute("/dashboard/generator")({
   component: GeneratorPage,
@@ -16,6 +16,15 @@ function GeneratorPage() {
   const [form, setForm] = useState({ description: "", voltage: "", microcontroller: "", preferred: "", budget: "" });
   const [result, setResult] = useState("");
   const [loading, setLoading] = useState(false);
+  const [exporting, setExporting] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const desc = params.get("desc");
+    if (desc) {
+      setForm((prev) => ({ ...prev, description: desc }));
+    }
+  }, []);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -31,11 +40,19 @@ function GeneratorPage() {
     }
   }
 
-  function exportPDF() {
-    exportMarkdownToPDF(form.description ? `Circuit Design: ${form.description.slice(0, 40)}` : "Circuit Design", result);
-  }
-
   const sections = parseMarkdownSections(result);
+
+  async function handleExportPDF() {
+    setExporting(true);
+    await exportProjectPDF({
+      title: form.description ? `Circuit Design: ${form.description.slice(0, 40)}...` : "Circuit Design",
+      query: form.description,
+      markdown: result,
+      circuitJson: sections.circuitJson,
+      elementId: "circuit-diagram-export"
+    });
+    setExporting(false);
+  }
 
   return (
     <div className="mx-auto max-w-6xl p-6 md:p-10">
@@ -59,7 +76,7 @@ function GeneratorPage() {
             <Field label="Microcontroller"><input className="input" value={form.microcontroller} onChange={(e) => setForm({ ...form, microcontroller: e.target.value })} placeholder="Arduino Uno" /></Field>
           </div>
           <Field label="Preferred components"><input className="input" value={form.preferred} onChange={(e) => setForm({ ...form, preferred: e.target.value })} placeholder="L298N, N20 motors" /></Field>
-          <Field label="Budget (USD)"><input className="input" value={form.budget} onChange={(e) => setForm({ ...form, budget: e.target.value })} placeholder="$30" /></Field>
+          <Field label="Budget (BDT)"><input className="input" value={form.budget} onChange={(e) => setForm({ ...form, budget: e.target.value })} placeholder="৳3000" /></Field>
           <button type="submit" disabled={loading} className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-brand py-2.5 font-medium text-white glow-brand disabled:opacity-70">
             {loading ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
             Generate circuit
@@ -76,10 +93,44 @@ function GeneratorPage() {
             )}
             {result && (
               <>
-                <div className="mb-4 flex items-center justify-between border-b border-border/40 pb-2">
+                <div className="mb-4 flex flex-wrap items-center justify-between gap-2 border-b border-border/40 pb-2">
                   <div className="text-sm font-semibold text-foreground">Generated Output</div>
-                  <button onClick={exportPDF} className="inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-xs hover:bg-accent"><Download className="size-3.5" /> Export PDF</button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={handleExportPDF}
+                      disabled={exporting}
+                      className="inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-xs hover:bg-accent disabled:opacity-50"
+                    >
+                      {exporting ? <Loader2 className="size-3.5 animate-spin" /> : <Download className="size-3.5" />}
+                      {exporting ? "Generating PDF..." : "Export PDF"}
+                    </button>
+                    {sections.circuitJson && (
+                      <button
+                        onClick={() => exportProjectJSON(form.description ? `Circuit Design: ${form.description.slice(0, 40)}` : "Circuit Design", sections.circuitJson)}
+                        className="inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-xs hover:bg-accent"
+                      >
+                        <Download className="size-3.5" /> Export JSON
+                      </button>
+                    )}
+                    {sections.code && (
+                      <button
+                        onClick={() => exportProjectCode(form.description ? `Circuit Design: ${form.description.slice(0, 40)}` : "Circuit Design", sections.code)}
+                        className="inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-xs hover:bg-accent"
+                      >
+                        <Download className="size-3.5" /> Export Code
+                      </button>
+                    )}
+                  </div>
                 </div>
+
+                {/* Hidden container for diagram image capture during PDF generation */}
+                {sections.circuitJson && (
+                  <div className="absolute -left-[9999px] top-0 pointer-events-none" style={{ width: "1000px", height: "600px", zIndex: -1000 }}>
+                    <div id="circuit-diagram-export" className="bg-white p-6 rounded-xl" style={{ width: "1000px", height: "600px", background: "#ffffff" }}>
+                      <CircuitRenderer data={sections.circuitJson} />
+                    </div>
+                  </div>
+                )}
                 
                 <Tabs defaultValue="overview" className="w-full">
                   <TabsList className="flex flex-wrap h-auto gap-1 bg-muted/50 p-1 mb-4 rounded-lg">

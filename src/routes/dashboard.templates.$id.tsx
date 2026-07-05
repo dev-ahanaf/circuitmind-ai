@@ -4,10 +4,10 @@ import { TEMPLATES, type TemplateItem } from "@/lib/components-data";
 import { generateCircuit } from "@/lib/ai.functions";
 import { Markdown } from "@/components/markdown";
 import { ArrowLeft, Sparkles, Loader2, Download, Info } from "lucide-react";
-import { exportMarkdownToPDF } from "@/lib/utils";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { parseMarkdownSections } from "@/utils/parser";
 import { CircuitRenderer } from "@/components/CircuitRenderer/CircuitRenderer";
+import { exportProjectPDF, exportProjectJSON, exportProjectCode } from "@/utils/pdfExport";
 
 export const Route = createFileRoute("/dashboard/templates/$id")({
   loader: ({ params }) => {
@@ -22,6 +22,7 @@ function TemplateDetail() {
   const t = Route.useLoaderData() as TemplateItem;
   const [loading, setLoading] = useState(false);
   const [content, setContent] = useState("");
+  const [exporting, setExporting] = useState(false);
 
   async function build() {
     setLoading(true);
@@ -37,6 +38,18 @@ function TemplateDetail() {
 
   const sections = parseMarkdownSections(content);
 
+  async function handleExportPDF() {
+    setExporting(true);
+    await exportProjectPDF({
+      title: t.title,
+      query: t.description,
+      markdown: content,
+      circuitJson: sections.circuitJson,
+      elementId: "circuit-diagram-export"
+    });
+    setExporting(false);
+  }
+
   return (
     <div className="mx-auto max-w-5xl p-6 md:p-10">
       <Link to="/dashboard/templates" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft className="size-3.5" /> Back to templates</Link>
@@ -51,7 +64,7 @@ function TemplateDetail() {
         </button>
       </div>
       <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
-        <div className="glass rounded-xl p-4"><div className="text-xs text-muted-foreground">Estimated cost</div><div className="mt-1 text-xl font-semibold">${t.cost}</div></div>
+        <div className="glass rounded-xl p-4"><div className="text-xs text-muted-foreground">Estimated cost</div><div className="mt-1 text-xl font-semibold">৳{t.cost}</div></div>
         <div className="glass rounded-xl p-4"><div className="text-xs text-muted-foreground">Difficulty</div><div className="mt-1 text-xl font-semibold">{t.difficulty}</div></div>
         <div className="glass rounded-xl p-4"><div className="text-xs text-muted-foreground">Category</div><div className="mt-1 text-xl font-semibold">{t.category}</div></div>
       </div>
@@ -63,13 +76,47 @@ function TemplateDetail() {
         {loading && (<div className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="size-4 animate-spin" /> Building your project…</div>)}
         {!loading && !content && (<div className="text-center text-sm text-muted-foreground">Click <b>Build with AI</b> to generate a complete guide with wiring, code and BOM.</div>)}
         {content && (
-          <>
-            <div className="mb-4 flex items-center justify-between border-b border-border/40 pb-2">
-              <div className="text-sm font-semibold text-foreground">Generated Output</div>
-              <button onClick={() => exportMarkdownToPDF(t.title, content)} className="inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-xs hover:bg-accent"><Download className="size-3.5" /> Export PDF</button>
-            </div>
-            
-            <Tabs defaultValue="overview" className="w-full">
+           <>
+             <div className="mb-4 flex flex-wrap items-center justify-between gap-2 border-b border-border/40 pb-2">
+               <div className="text-sm font-semibold text-foreground">Generated Output</div>
+               <div className="flex items-center gap-2">
+                 <button
+                   onClick={handleExportPDF}
+                   disabled={exporting}
+                   className="inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-xs hover:bg-accent disabled:opacity-50"
+                 >
+                   {exporting ? <Loader2 className="size-3.5 animate-spin" /> : <Download className="size-3.5" />}
+                   {exporting ? "Generating PDF..." : "Export PDF"}
+                 </button>
+                 {sections.circuitJson && (
+                   <button
+                     onClick={() => exportProjectJSON(t.title, sections.circuitJson)}
+                     className="inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-xs hover:bg-accent"
+                   >
+                     <Download className="size-3.5" /> Export JSON
+                   </button>
+                 )}
+                 {sections.code && (
+                   <button
+                     onClick={() => exportProjectCode(t.title, sections.code)}
+                     className="inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-xs hover:bg-accent"
+                   >
+                     <Download className="size-3.5" /> Export Code
+                   </button>
+                 )}
+               </div>
+             </div>
+
+             {/* Hidden container for diagram image capture during PDF generation */}
+             {sections.circuitJson && (
+               <div className="absolute -left-[9999px] top-0 pointer-events-none" style={{ width: "1000px", height: "600px", zIndex: -1000 }}>
+                 <div id="circuit-diagram-export" className="bg-white p-6 rounded-xl" style={{ width: "1000px", height: "600px", background: "#ffffff" }}>
+                   <CircuitRenderer data={sections.circuitJson} />
+                 </div>
+               </div>
+             )}
+             
+             <Tabs defaultValue="overview" className="w-full">
               <TabsList className="flex flex-wrap h-auto gap-1 bg-muted/50 p-1 mb-4 rounded-lg">
                 <TabsTrigger value="overview">Overview</TabsTrigger>
                 <TabsTrigger value="components">Components</TabsTrigger>
