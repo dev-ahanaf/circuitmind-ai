@@ -92,8 +92,12 @@ function AboutPage() {
           
           <div className="flex flex-col md:flex-row items-center gap-8">
             <div className="relative">
-              <div className="size-32 rounded-2xl bg-gradient-brand flex items-center justify-center text-white text-4xl font-bold shadow-lg">
-                FA
+              <div className="size-32 rounded-2xl overflow-hidden border border-border shadow-lg bg-secondary/30">
+                <img
+                  src="/developer-photo.jpg"
+                  alt="Fayek Ahanaf"
+                  className="size-full object-cover"
+                />
               </div>
               <div className="absolute -bottom-2 -right-2 bg-background border border-border p-1.5 rounded-lg shadow-sm">
                 <Code2 className="size-5 text-brand" />

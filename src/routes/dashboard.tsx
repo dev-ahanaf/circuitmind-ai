@@ -192,8 +192,12 @@ function DashboardLayout() {
               </button>
               
               <div className="mt-4 flex items-center gap-2.5 rounded-xl border border-border/40 bg-card/25 p-2 px-2.5">
-                <div className="grid size-8 place-items-center rounded-full bg-gradient-brand text-xs font-bold text-white shadow-inner">
-                  {(user?.email || "?").slice(0, 1).toUpperCase()}
+                <div className="size-8 rounded-full overflow-hidden border border-border/50 shadow-inner bg-secondary shrink-0">
+                  <img
+                    src="/developer-photo.jpg"
+                    alt="Profile Avatar"
+                    className="size-full object-cover"
+                  />
                 </div>
                 <div className="min-w-0 text-xs flex-1">
                   <div className="truncate font-semibold text-foreground leading-tight">

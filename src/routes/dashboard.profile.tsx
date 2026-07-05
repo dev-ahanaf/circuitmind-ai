@@ -118,8 +118,12 @@ function Profile() {
       <div className="glass flex flex-col items-start justify-between gap-6 rounded-3xl p-8 md:flex-row md:items-center relative overflow-hidden">
         <div className="absolute right-0 top-0 -z-10 h-32 w-32 rounded-full bg-brand/10 blur-2xl" />
         <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
-          <div className="grid size-20 place-items-center rounded-2xl bg-gradient-brand text-3xl font-bold text-white shadow-lg shadow-brand/20">
-            {name.slice(0, 1).toUpperCase()}
+          <div className="size-20 rounded-2xl overflow-hidden border border-border shadow-lg bg-secondary/30">
+            <img
+              src="/developer-photo.jpg"
+              alt="Profile Avatar"
+              className="size-full object-cover"
+            />
           </div>
           <div>
             <div className="flex flex-wrap items-center gap-2">
