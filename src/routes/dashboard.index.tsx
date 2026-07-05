@@ -42,7 +42,7 @@ const ACTIONS = [
 const RECENT_PROJECTS = [
   { id: "smart-door", title: "Arduino Smart Door Lock", type: "Home Automation", components: 5, time: "2 hours ago", status: "Completed", statusColor: "text-emerald-400 border-emerald-500/20 bg-emerald-500/5" },
   { id: "line-follower", title: "Line Follower Robot", type: "Robotics", components: 8, time: "Yesterday", status: "In Progress", statusColor: "text-amber-400 border-amber-500/20 bg-amber-500/5" },
-  { id: "iot-weather", title: "ESP32 Weather Station", type: "IoT / Wireless", components: 6, time: "3 days ago", status: "Completed", statusColor: "text-emerald-400 border-emerald-500/20 bg-emerald-500/5" },
+  { id: "weather", title: "ESP32 Weather Station", type: "IoT / Wireless", components: 6, time: "3 days ago", status: "Completed", statusColor: "text-emerald-400 border-emerald-500/20 bg-emerald-500/5" },
 ];
 
 const TIPS = [
