@@ -454,7 +454,6 @@ function FAQ() {
     </section>
   );
 }
-
 function Footer() {
   return (
     <footer className="border-t border-border/60">
@@ -466,30 +465,13 @@ function Footer() {
               AI-powered circuit design for the next generation of EEE, robotics, and IoT builders.
             </p>
           </div>
-          <div className="grid grid-cols-2 gap-8 text-sm md:grid-cols-3">
-            <div>
-              <div className="mb-3 text-xs uppercase tracking-widest text-muted-foreground">Product</div>
-              <ul className="space-y-2">
-                <li><a href="#features" className="hover:text-foreground text-muted-foreground">Features</a></li>
-                <li><a href="#templates" className="hover:text-foreground text-muted-foreground">Templates</a></li>
-                <li><a href="#pricing" className="hover:text-foreground text-muted-foreground">Pricing</a></li>
-              </ul>
-            </div>
-            <div>
-              <div className="mb-3 text-xs uppercase tracking-widest text-muted-foreground">Company</div>
-              <ul className="space-y-2">
-                <li><Link to="/about" className="hover:text-foreground text-muted-foreground">About</Link></li>
-                <li><a href="#" className="hover:text-foreground text-muted-foreground">Blog</a></li>
-                <li><a href="#" className="hover:text-foreground text-muted-foreground">Contact</a></li>
-              </ul>
-            </div>
-            <div>
-              <div className="mb-3 text-xs uppercase tracking-widest text-muted-foreground">Social</div>
-              <ul className="space-y-2">
-                <li><a href="#" className="flex items-center gap-2 text-muted-foreground hover:text-foreground"><Twitter className="size-4" /> Twitter</a></li>
-                <li><a href="#" className="flex items-center gap-2 text-muted-foreground hover:text-foreground"><Github className="size-4" /> GitHub</a></li>
-              </ul>
-            </div>
+          <div className="flex flex-wrap gap-6 text-sm items-center">
+            <Link to="/about" className="hover:text-foreground text-muted-foreground">About Us</Link>
+            <a href="mailto:ahanaffayek@gmail.com" className="hover:text-foreground text-muted-foreground">Contact Us</a>
+            <a href="#pricing" className="hover:text-foreground text-muted-foreground">Pricing</a>
+            <a href="https://github.com/dev-ahanaf" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-muted-foreground hover:text-foreground">
+              <Github className="size-4" /> GitHub
+            </a>
           </div>
         </div>
         <div className="mt-10 flex flex-col items-start justify-between gap-2 border-t border-border/60 pt-6 text-xs text-muted-foreground md:flex-row">
@@ -504,7 +486,6 @@ function Footer() {
     </footer>
   );
 }
-
 function SectionHeading({ eyebrow, title }: { eyebrow: string; title: string }) {
   return (
     <div className="mx-auto max-w-3xl text-center">
