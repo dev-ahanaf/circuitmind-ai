@@ -239,14 +239,21 @@ export async function exportProjectPDF({
     
     // Document Title
     pdf.setFont("helvetica", "bold");
-    pdf.setFontSize(20);
+    pdf.setFontSize(18);
     pdf.setTextColor(15, 23, 42); // slate-900
     pdf.text("CircuitMind AI Project Report", margin, y);
-    y += 10;
+    y += 5;
+
+    // Platform designer metadata
+    pdf.setFont("helvetica", "normal");
+    pdf.setFontSize(8);
+    pdf.setTextColor(100, 116, 139); // slate-500
+    pdf.text("Designed & Developed by Fayek Ahanaf (CIS, Daffodil International University)", margin, y);
+    y += 7;
     
     // Project Title
     pdf.setFont("helvetica", "bold");
-    pdf.setFontSize(13.5);
+    pdf.setFontSize(13);
     pdf.setTextColor(37, 99, 235); // Blue
     pdf.text(title, margin, y);
     y += 8;
