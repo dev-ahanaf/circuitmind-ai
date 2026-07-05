@@ -208,7 +208,7 @@ function DashboardLayout() {
             <Outlet />
           </div>
           <footer className="py-4 text-center text-xs text-muted-foreground border-t border-border/20 bg-background/50">
-            © {new Date().getFullYear()} CircuitMind AI. Developed by <span className="font-medium text-foreground">Ahanaf</span>
+            © {new Date().getFullYear()} CircuitMind AI. Designed & Developed by <span className="font-semibold text-brand">Fayek Ahanaf</span> (CIS, Daffodil International University)
           </footer>
         </main>
       </div>
