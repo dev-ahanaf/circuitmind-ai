@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
 import {
   Bot,
   Save,
@@ -277,6 +278,12 @@ function DashboardHome() {
                   </div>
                 </div>
               </div>
+              <button
+                onClick={() => toast.info("CircuitMind Pro plans are coming soon! You currently have full developer trial access. For larger team limits, contact Fayek Ahanaf at ahanaffayek@gmail.com.", { duration: 6000 })}
+                className="button-glow-effect mt-5 w-full rounded-xl bg-gradient-brand py-2.5 text-xs font-semibold text-white hover:brightness-110 transition"
+              >
+                Upgrade to Pro
+              </button>
             </div>
 
             {/* Optimizer Banner */}

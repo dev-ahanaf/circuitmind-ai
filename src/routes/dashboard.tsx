@@ -156,7 +156,10 @@ function DashboardLayout() {
                 <div className="h-full w-[70%] bg-gradient-brand" />
               </div>
               <div className="mt-1.5 text-[10px] text-muted-foreground">7 / 10 generations used this month</div>
-              <button className="button-glow-effect mt-3 w-full rounded-lg bg-gradient-brand py-2 text-xs font-semibold text-white hover:brightness-110 transition">
+              <button 
+                onClick={() => toast.info("CircuitMind Pro plans are coming soon! You currently have full developer trial access. For larger team limits, contact Fayek Ahanaf at ahanaffayek@gmail.com.", { duration: 6000 })}
+                className="button-glow-effect mt-3 w-full rounded-lg bg-gradient-brand py-2 text-xs font-semibold text-white hover:brightness-110 transition"
+              >
                 Upgrade to Pro
               </button>
             </div>
