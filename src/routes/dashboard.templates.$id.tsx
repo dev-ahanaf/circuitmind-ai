@@ -8,6 +8,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { parseMarkdownSections } from "@/utils/parser";
 import { CircuitRenderer } from "@/components/CircuitRenderer/CircuitRenderer";
 import { exportProjectPDF, exportProjectJSON, exportProjectCode } from "@/utils/pdfExport";
+import { TEMPLATES_CONTENT } from "@/lib/templates-content";
 
 export const Route = createFileRoute("/dashboard/templates/$id")({
   loader: ({ params }) => {
@@ -21,7 +22,7 @@ export const Route = createFileRoute("/dashboard/templates/$id")({
 function TemplateDetail() {
   const t = Route.useLoaderData() as TemplateItem;
   const [loading, setLoading] = useState(false);
-  const [content, setContent] = useState("");
+  const [content, setContent] = useState(TEMPLATES_CONTENT[t.id] || "");
   const [exporting, setExporting] = useState(false);
 
   async function build() {
