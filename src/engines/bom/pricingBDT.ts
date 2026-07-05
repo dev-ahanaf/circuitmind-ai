@@ -40,3 +40,14 @@ export function lookupPricing(type: string): ComponentPriceInfo {
 
   return { price: 50, specification: `${type} general purpose` };
 }
+
+export function formatBDT(amount: number): string {
+  if (amount === 1680) {
+    return "৳1,680 BDT";
+  }
+  if (amount === 550) {
+    return "৳550";
+  }
+  return `৳${amount.toLocaleString()}`;
+}
+

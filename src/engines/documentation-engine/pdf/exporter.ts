@@ -111,7 +111,7 @@ function addSection(pdf: jsPDF, title: string, text: string, currentY: number): 
   pdf.setTextColor(51, 65, 85); // slate-700
   
   // Clean bold symbols from markdown body
-  const cleanText = text.replace(/\*\*/g, "");
+  const cleanText = text.replace(/\*\*/g, "").replace(/৳/g, "BDT ");
   
   const splitText = pdf.splitTextToSize(cleanText, pageWidth - margin * 2);
   const textHeight = splitText.length * 5; // ~5mm per line spacing
@@ -241,7 +241,7 @@ export async function exportProjectPDF({
       body: [
         ["Query / Prompt:", query || title],
         ["Difficulty Level:", difficulty],
-        ["Estimated Cost:", cost],
+        ["Estimated Cost:", cost.replace(/৳/g, "BDT ")],
         ["Time to Build:", time],
       ],
       startY: y,
@@ -316,9 +316,12 @@ export async function exportProjectPDF({
       pdf.line(margin, y, pageWidth - margin, y);
       y += 6;
       
+      const cleanHeaders = componentsTable.headers.map(h => h.replace(/৳/g, "BDT "));
+      const cleanRows = componentsTable.rows.map(row => row.map(cell => cell.replace(/৳/g, "BDT ")));
+
       autoTable(pdf, {
-        head: [componentsTable.headers],
-        body: componentsTable.rows,
+        head: [cleanHeaders],
+        body: cleanRows,
         startY: y,
         margin: { left: margin, right: margin },
         theme: "striped",
@@ -348,9 +351,12 @@ export async function exportProjectPDF({
       pdf.line(margin, y, pageWidth - margin, y);
       y += 6;
       
+      const cleanHeaders = wiringTable.headers.map(h => h.replace(/৳/g, "BDT "));
+      const cleanRows = wiringTable.rows.map(row => row.map(cell => cell.replace(/৳/g, "BDT ")));
+
       autoTable(pdf, {
-        head: [wiringTable.headers],
-        body: wiringTable.rows,
+        head: [cleanHeaders],
+        body: cleanRows,
         startY: y,
         margin: { left: margin, right: margin },
         theme: "striped",
