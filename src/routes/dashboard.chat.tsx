@@ -19,7 +19,14 @@ function stripJsonBlock(markdown: string): string {
   return result.trim();
 }
 
+import { z } from "zod";
+
+const chatSearchSchema = z.object({
+  msg: z.string().optional(),
+});
+
 export const Route = createFileRoute("/dashboard/chat")({
+  validateSearch: (search) => chatSearchSchema.parse(search),
   component: ChatPage,
 });
 

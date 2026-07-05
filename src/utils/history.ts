@@ -12,7 +12,7 @@ export interface HistoryItem {
 const DEFAULT_HISTORY: HistoryItem[] = [
   { id: "line-follower", title: "Line Following Robot", query: "Line follower robot using L298N", markdown: "", when: "2h ago", tokens: 1420, type: "Generator" },
   { id: "smart-door", title: "Arduino Smart Door Lock", query: "Arduino smart door lock with keypad and servo", markdown: "", when: "Yesterday", tokens: 2109, type: "Chat" },
-  { id: "iot-weather", title: "ESP32 IoT Weather Station", query: "ESP32 weather station with DHT22", markdown: "", when: "3d ago", tokens: 1740, type: "Generator" },
+  { id: "weather", title: "ESP32 IoT Weather Station", query: "ESP32 weather station with DHT22", markdown: "", when: "3d ago", tokens: 1740, type: "Generator" },
 ];
 
 export function getHistory(): HistoryItem[] {

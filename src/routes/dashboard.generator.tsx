@@ -9,7 +9,15 @@ import { Cable, Loader2, Sparkles, Download, Info } from "lucide-react";
 import { exportProjectPDF, exportProjectJSON, exportProjectCode } from "@/utils/pdfExport";
 import { addToHistory } from "@/utils/history";
 
+import { z } from "zod";
+
+const generatorSearchSchema = z.object({
+  desc: z.string().optional(),
+  historyId: z.string().optional(),
+});
+
 export const Route = createFileRoute("/dashboard/generator")({
+  validateSearch: (search) => generatorSearchSchema.parse(search),
   component: GeneratorPage,
 });
 
