@@ -57,7 +57,7 @@ export const LogicGate: React.FC<SymbolProps & { type: "AND" | "OR" | "NOT" | "N
       ) : type === "XOR" ? (
         <>
           {/* Back curve offset */}
-          <path d="M 16 10 Q 24 25 16 40" className={`fill-none stroke-2 ${colorClass}`} />
+          <path d="M 16 10 Q 24 25 16 40" fill="none" className={`fill-none stroke-2 ${colorClass}`} />
           <path d="M 20 10 Q 28 25 20 40 Q 32 40 42 28 Q 45 25 42 22 Q 32 10 20 10 Z" className={`fill-card stroke-2 ${colorClass}`} />
         </>
       ) : (

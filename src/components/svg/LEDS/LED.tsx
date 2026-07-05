@@ -25,8 +25,8 @@ export const LED: React.FC<SymbolProps & { color?: string }> = ({ id, label, val
       />
 
       {/* Outward light arrows */}
-      <path d="M 33 13 L 26 6 M 29 8 L 26 6 L 28 10" className="fill-none stroke-brand/80 stroke-1" />
-      <path d="M 43 13 L 36 6 M 39 8 L 36 6 L 38 10" className="fill-none stroke-brand/80 stroke-1" />
+      <path d="M 33 13 L 26 6 M 29 8 L 26 6 L 28 10" fill="none" className="fill-none stroke-brand/80 stroke-1" />
+      <path d="M 43 13 L 36 6 M 39 8 L 36 6 L 38 10" fill="none" className="fill-none stroke-brand/80 stroke-1" />
 
       {/* Pins */}
       <circle cx="10" cy="25" r="3" className="fill-card stroke-muted-foreground stroke-1" />
@@ -87,6 +87,7 @@ export const Diode: React.FC<SymbolProps & { zener?: boolean }> = ({ id, label, 
         // Zener cathode bar
         <path
           d="M 45 15 L 48 15 L 48 35 L 51 35"
+          fill="none"
           className={`fill-none stroke-2 ${selected ? "stroke-brand" : hovered ? "stroke-brand/60" : "stroke-foreground"}`}
         />
       ) : (

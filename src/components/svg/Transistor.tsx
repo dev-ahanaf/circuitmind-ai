@@ -39,10 +39,10 @@ export const Transistor: React.FC<SymbolProps & { pnp?: boolean }> = ({ id, labe
       {/* Arrow emitter marker */}
       {pnp ? (
         // PNP: Arrow pointing inward toward base (from Emitter to Base)
-        <path d="M 33 32 L 27 31 M 30 28 L 27 31 L 33 32" className="fill-none stroke-foreground stroke-2" />
+        <path d="M 33 32 L 27 31 M 30 28 L 27 31 L 33 32" fill="none" className="fill-none stroke-foreground stroke-2" />
       ) : (
         // NPN: Arrow pointing outward away from base
-        <path d="M 38 34 L 44 37 M 42 32 L 44 37 L 38 34" className="fill-none stroke-foreground stroke-2" />
+        <path d="M 38 34 L 44 37 M 42 32 L 44 37 L 38 34" fill="none" className="fill-none stroke-foreground stroke-2" />
       )}
 
       {/* Connection dots */}
@@ -89,7 +89,7 @@ export const MOSFET: React.FC<SymbolProps> = ({ id, label, value, selected, hove
       <line x1="28" y1="25" x2="42" y2="25" className="stroke-foreground stroke-[1.5]" />
       <line x1="42" y1="25" x2="42" y2="32" className="stroke-foreground stroke-[1.5]" />
       {/* Arrow pointing in (N-channel) */}
-      <path d="M 28 25 L 34 22 M 28 25 L 34 28" className="fill-none stroke-foreground stroke-2" />
+      <path d="M 28 25 L 34 22 M 28 25 L 34 28" fill="none" className="fill-none stroke-foreground stroke-2" />
 
       {/* Connection dots */}
       <circle cx="10" cy="25" r="3" className="fill-card stroke-muted-foreground stroke-1" />

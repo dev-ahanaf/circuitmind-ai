@@ -34,8 +34,8 @@ export const LDR: React.FC<SymbolProps> = ({ id, label, selected, hovered, onSel
       />
       
       {/* Inward light arrows */}
-      <path d="M 23 8 L 30 14 M 27 8 L 30 14 L 26 12" className="fill-none stroke-brand/80 stroke-1" />
-      <path d="M 33 5 L 40 11 M 37 5 L 40 11 L 36 9" className="fill-none stroke-brand/80 stroke-1" />
+      <path d="M 23 8 L 30 14 M 27 8 L 30 14 L 26 12" fill="none" className="fill-none stroke-brand/80 stroke-1" />
+      <path d="M 33 5 L 40 11 M 37 5 L 40 11 L 36 9" fill="none" className="fill-none stroke-brand/80 stroke-1" />
 
       <circle cx="10" cy="25" r="3" className="fill-card stroke-muted-foreground stroke-1" />
       <circle cx="70" cy="25" r="3" className="fill-card stroke-muted-foreground stroke-1" />

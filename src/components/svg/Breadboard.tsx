@@ -72,7 +72,7 @@ export const BluetoothHC05: React.FC<SymbolProps> = ({ id, label, selected, hove
         className={`fill-card stroke-2 ${selected ? "stroke-brand drop-shadow-[0_0_8px_rgba(168,85,247,0.5)]" : hovered ? "stroke-brand/60" : "stroke-border"}`}
       />
       {/* Antennas details on top */}
-      <path d="M 20 19 L 20 23 L 25 23 L 25 19 L 30 19 L 30 23 L 35 23 L 35 19" className="fill-none stroke-muted-foreground stroke-1" />
+      <path d="M 20 19 L 20 23 L 25 23 L 25 19 L 30 19 L 30 23 L 35 23 L 35 19" fill="none" className="fill-none stroke-muted-foreground stroke-1" />
       <text x="45" y="60" textAnchor="middle" className="font-sans text-[8px] font-bold fill-foreground">HC-05</text>
 
       {Object.entries(BluetoothHC05Pins).map(([name, pin]) => (

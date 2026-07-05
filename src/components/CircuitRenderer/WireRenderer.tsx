@@ -67,12 +67,14 @@ export const WireRenderer: React.FC<WireRendererProps> = React.memo(({
       {/* Thick interactive hitbox */}
       <path
         d={pathStr}
+        fill="none"
         className="fill-none stroke-transparent stroke-[12] cursor-pointer"
       />
 
       {/* Glow path */}
       <path
         d={pathStr}
+        fill="none"
         className={`fill-none stroke-[5] opacity-0 transition-opacity duration-200 group-hover:opacity-40 ${
           selected ? "opacity-60 stroke-brand" : "stroke-brand/60"
         }`}
@@ -81,6 +83,7 @@ export const WireRenderer: React.FC<WireRendererProps> = React.memo(({
       {/* Main wire line */}
       <path
         d={pathStr}
+        fill="none"
         className={`fill-none stroke-[2] transition-colors duration-150 ${activeColor}`}
       />
 
@@ -88,6 +91,7 @@ export const WireRenderer: React.FC<WireRendererProps> = React.memo(({
       {animate && (
         <path
           d={pathStr}
+          fill="none"
           className={`fill-none stroke-[1.5] stroke-dasharray stroke-white/50 opacity-0 group-hover:opacity-100 ${
             selected ? "opacity-100" : ""
           }`}
