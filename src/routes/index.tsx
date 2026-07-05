@@ -474,11 +474,11 @@ function Footer() {
             </a>
           </div>
         </div>
-        <div className="mt-10 flex flex-col items-start justify-between gap-2 border-t border-border/60 pt-6 text-xs text-muted-foreground md:flex-row">
+        <div className="mt-10 flex flex-col items-center justify-center gap-3 border-t border-border/60 pt-6 text-xs text-muted-foreground text-center">
           <span>© {new Date().getFullYear()} CircuitMind AI. All rights reserved.</span>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center justify-center gap-2">
             <span>Built for engineering students.</span>
-            <span className="text-border">|</span>
+            <span className="text-border/40">|</span>
             <span>Developed by <span className="font-semibold text-foreground hover:text-brand transition cursor-pointer">Ahanaf</span></span>
           </div>
         </div>
