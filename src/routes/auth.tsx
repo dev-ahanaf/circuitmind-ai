@@ -48,8 +48,13 @@ function AuthPage() {
         toast.success("Signed in");
         navigate({ to: "/dashboard" });
       }
-    } catch (err) {
-      toast.error((err as Error).message);
+    } catch (err: any) {
+      const msg = err.message || "";
+      if (msg.toLowerCase().includes("rate limit")) {
+        toast.error("Supabase security rate limit active. Please wait a few minutes, toggle a VPN, or use the 'Developer Bypass Login' button to test the dashboard instantly!", { duration: 8000 });
+      } else {
+        toast.error(msg);
+      }
     } finally {
       setLoading(false);
     }
