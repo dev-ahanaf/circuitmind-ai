@@ -67,6 +67,8 @@ function Landing() {
 }
 
 function Nav({ theme, toggleTheme }: { theme: "dark" | "light"; toggleTheme: () => void }) {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   return (
     <header className="sticky top-0 z-40 border-b border-border/50 backdrop-blur-xl bg-background/60">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
@@ -89,6 +91,21 @@ function Nav({ theme, toggleTheme }: { theme: "dark" | "light"; toggleTheme: () 
           >
             {theme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
           </button>
+          
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="md:hidden rounded-xl border border-border/60 p-2 text-muted-foreground hover:text-foreground hover:border-brand/40 bg-card/40 transition-colors"
+            aria-label="Toggle menu"
+          >
+            <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              {mobileMenuOpen ? (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              ) : (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              )}
+            </svg>
+          </button>
+
           <Link to="/auth" className="hidden text-sm text-muted-foreground hover:text-foreground md:inline">
             Sign in
           </Link>
@@ -100,6 +117,17 @@ function Nav({ theme, toggleTheme }: { theme: "dark" | "light"; toggleTheme: () 
           </Link>
         </div>
       </div>
+
+      {mobileMenuOpen && (
+        <div className="md:hidden border-t border-border/40 bg-background/95 backdrop-blur-xl px-6 py-4 space-y-3 flex flex-col text-sm font-medium">
+          <a href="#features" onClick={() => setMobileMenuOpen(false)} className="hover:text-brand text-muted-foreground transition-colors py-2">Features</a>
+          <a href="#how" onClick={() => setMobileMenuOpen(false)} className="hover:text-brand text-muted-foreground transition-colors py-2">How it works</a>
+          <a href="#templates" onClick={() => setMobileMenuOpen(false)} className="hover:text-brand text-muted-foreground transition-colors py-2">Templates</a>
+          <a href="#pricing" onClick={() => setMobileMenuOpen(false)} className="hover:text-brand text-muted-foreground transition-colors py-2">Pricing</a>
+          <a href="#faq" onClick={() => setMobileMenuOpen(false)} className="hover:text-brand text-muted-foreground transition-colors py-2">FAQ</a>
+          <Link to="/auth" onClick={() => setMobileMenuOpen(false)} className="hover:text-brand text-muted-foreground transition-colors py-2 border-t border-border/20 pt-3">Sign in</Link>
+        </div>
+      )}
     </header>
   );
 }
