@@ -1,3 +1,5 @@
+import { supabase } from "@/integrations/supabase/client";
+
 export interface HistoryItem {
   id: string;
   title: string;
@@ -15,23 +17,75 @@ const DEFAULT_HISTORY: HistoryItem[] = [
   { id: "weather", title: "ESP32 IoT Weather Station", query: "ESP32 weather station with DHT22", markdown: "", when: "3d ago", tokens: 1740, type: "Generator" },
 ];
 
-export function getHistory(): HistoryItem[] {
+function formatTimeAgo(dateString: string): string {
+  try {
+    const now = new Date();
+    const date = new Date(dateString);
+    const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+    
+    if (seconds < 60) return "Just now";
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    return `${days}d ago`;
+  } catch (e) {
+    return "Recently";
+  }
+}
+
+export async function getHistory(): Promise<HistoryItem[]> {
+  try {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const user = sessionData?.session?.user;
+
+    if (user && user.email !== "developer@circuitmind.local") {
+      // Fetch from Supabase Projects Table
+      const { data, error } = await supabase
+        .from("projects")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(20);
+
+      if (error) throw error;
+
+      if (data && data.length > 0) {
+        return data.map((p: any) => {
+          const content = typeof p.content === "string" ? JSON.parse(p.content) : p.content || {};
+          return {
+            id: p.id,
+            title: p.title,
+            query: p.description || "",
+            markdown: content.markdown || "",
+            circuitJson: content.circuitJson || null,
+            when: formatTimeAgo(p.created_at),
+            tokens: Math.round((content.markdown || "").length / 4.2),
+            type: p.category || "Generator"
+          };
+        });
+      }
+    }
+  } catch (e) {
+    console.warn("Supabase history fetch failed, falling back to localStorage:", e);
+  }
+
+  // Fallback to localStorage
   if (typeof window === "undefined") return DEFAULT_HISTORY;
   try {
     const raw = localStorage.getItem("circuitmind_history");
     if (!raw) {
-      // Seed default history on first access
       localStorage.setItem("circuitmind_history", JSON.stringify(DEFAULT_HISTORY));
       return DEFAULT_HISTORY;
     }
     return JSON.parse(raw);
   } catch (e) {
-    console.error("Failed to read history:", e);
+    console.error("Failed to read localStorage history:", e);
     return DEFAULT_HISTORY;
   }
 }
 
-export function addToHistory({
+export async function addToHistory({
   title,
   query,
   markdown,
@@ -44,13 +98,34 @@ export function addToHistory({
   circuitJson?: any;
   type?: string;
 }) {
+  try {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const user = sessionData?.session?.user;
+
+    if (user && user.email !== "developer@circuitmind.local") {
+      // Save to Supabase Projects Table
+      const { error } = await supabase.from("projects").insert({
+        title,
+        description: query,
+        content: { markdown, circuitJson },
+        category: type,
+        user_id: user.id
+      });
+
+      if (!error) return; // Success!
+      console.warn("Supabase project insert failed, writing local backup:", error.message);
+    }
+  } catch (e) {
+    console.warn("Supabase history save failed, saving to localStorage:", e);
+  }
+
+  // LocalStorage Fallback
   if (typeof window === "undefined") return;
   try {
-    const list = getHistory();
+    const raw = localStorage.getItem("circuitmind_history");
+    const list: HistoryItem[] = raw ? JSON.parse(raw) : DEFAULT_HISTORY;
     
-    // Remove if query already exists to prevent duplication
     const filtered = list.filter(item => item.query.toLowerCase() !== query.toLowerCase() && item.id !== query);
-
     const tokens = Math.round(markdown.length / 4.2) + (circuitJson ? 400 : 0);
     const newItem: HistoryItem = {
       id: Math.random().toString(36).substring(2, 9),
@@ -66,6 +141,6 @@ export function addToHistory({
     filtered.unshift(newItem);
     localStorage.setItem("circuitmind_history", JSON.stringify(filtered.slice(0, 20)));
   } catch (e) {
-    console.error("Failed to add to history:", e);
+    console.error("Failed to write to localStorage history:", e);
   }
 }

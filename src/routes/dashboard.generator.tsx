@@ -8,6 +8,7 @@ import { CircuitRenderer } from "@/components/CircuitRenderer/CircuitRenderer";
 import { Cable, Loader2, Sparkles, Download, Info } from "lucide-react";
 import { exportProjectPDF, exportProjectJSON, exportProjectCode } from "@/utils/pdfExport";
 import { addToHistory } from "@/utils/history";
+import { supabase } from "@/integrations/supabase/client";
 
 import { z } from "zod";
 
@@ -32,24 +33,49 @@ function GeneratorPage() {
     const desc = params.get("desc");
     const historyId = params.get("historyId");
     
-    if (historyId) {
+    async function loadHistoryItem() {
+      if (!historyId) return;
       try {
-        const raw = localStorage.getItem("circuitmind_history");
-        const list = raw ? JSON.parse(raw) : [];
-        const item = list.find((x: any) => x.id === historyId);
+        let item: any = null;
+        
+        // 1. Try Supabase
+        const { data, error } = await supabase.from("projects").select("*").eq("id", historyId).single();
+        if (data && !error) {
+          const content = typeof data.content === "string" ? JSON.parse(data.content) : data.content || {};
+          item = {
+            query: data.description,
+            markdown: content.markdown
+          };
+        } else {
+          // 2. Fall back to local storage
+          const raw = localStorage.getItem("circuitmind_history");
+          const list = raw ? JSON.parse(raw) : [];
+          const localItem = list.find((x: any) => x.id === historyId);
+          if (localItem) {
+            item = {
+              query: localItem.query,
+              markdown: localItem.markdown
+            };
+          }
+        }
+
         if (item) {
           setForm({
-            description: item.query,
+            description: item.query || "",
             voltage: "",
             microcontroller: "",
             preferred: "",
             budget: ""
           });
-          setResult(item.markdown);
+          setResult(item.markdown || "");
         }
       } catch (e) {
         console.error("Failed to load history item:", e);
       }
+    }
+
+    if (historyId) {
+      loadHistoryItem();
     } else if (desc) {
       setForm((prev) => ({ ...prev, description: desc }));
     }

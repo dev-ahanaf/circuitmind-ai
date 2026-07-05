@@ -31,18 +31,51 @@ function Profile() {
 
   useEffect(() => {
     async function loadProfile() {
-      const { data } = await supabase.auth.getUser();
-      setUser(data.user);
+      const { data: userData } = await supabase.auth.getUser();
+      setUser(userData.user);
 
-      if (data.user) {
-        const meta = data.user.user_metadata || {};
+      if (userData.user && userData.user.email !== "developer@circuitmind.local") {
+        try {
+          // 1. Try loading from Supabase Profiles Table
+          const { data, error } = await supabase
+            .from("profiles")
+            .select("*")
+            .eq("id", userData.user.id)
+            .single();
+
+          if (data && !error) {
+            setDisplayName(data.display_name || userData.user.email?.split("@")[0] || "Student");
+            setAvatarUrl(data.avatar_url || "/developer-photo.jpg");
+            
+            // Other secondary bio fields fall back to local storage / auth meta
+            const localDataStr = localStorage.getItem(`profile_${userData.user.id}`);
+            if (localDataStr) {
+              const localData = JSON.parse(localDataStr);
+              setFieldOfStudy(localData.fieldOfStudy || "Electrical & Electronic Engineering");
+              setBio(localData.bio || "Building circuits and coding MCUs.");
+              setFavoriteMcu(localData.favoriteMcu || "Arduino Uno");
+            } else {
+              const meta = userData.user.user_metadata || {};
+              setFieldOfStudy(meta.field_of_study || "Electrical & Electronic Engineering");
+              setBio(meta.bio || "Building circuits and coding MCUs.");
+              setFavoriteMcu(meta.favorite_mcu || "Arduino Uno");
+            }
+            return;
+          }
+        } catch (e) {
+          console.warn("Supabase profiles table fetch failed, falling back:", e);
+        }
+      }
+
+      if (userData.user) {
+        const meta = userData.user.user_metadata || {};
         
         // Load from localStorage if present
-        const localDataStr = localStorage.getItem(`profile_${data.user.id}`);
+        const localDataStr = localStorage.getItem(`profile_${userData.user.id}`);
         if (localDataStr) {
           try {
             const localData = JSON.parse(localDataStr);
-            setDisplayName(localData.displayName || meta.display_name || data.user.email?.split("@")[0] || "Student");
+            setDisplayName(localData.displayName || meta.display_name || userData.user.email?.split("@")[0] || "Student");
             setFieldOfStudy(localData.fieldOfStudy || meta.field_of_study || "Electrical & Electronic Engineering");
             setBio(localData.bio || meta.bio || "Building circuits and coding MCUs.");
             setFavoriteMcu(localData.favoriteMcu || meta.favorite_mcu || "Arduino Uno");
@@ -53,7 +86,7 @@ function Profile() {
           }
         }
 
-        setDisplayName(meta.display_name || data.user.email?.split("@")[0] || "Student");
+        setDisplayName(meta.display_name || userData.user.email?.split("@")[0] || "Student");
         setFieldOfStudy(meta.field_of_study || "Electrical & Electronic Engineering");
         setBio(meta.bio || "Building circuits and coding MCUs.");
         setFavoriteMcu(meta.favorite_mcu || "Arduino Uno");
@@ -115,7 +148,8 @@ function Profile() {
         if (user.email === "developer@circuitmind.local") {
           toast.success("Profile saved locally!");
         } else {
-          const { error } = await supabase.auth.updateUser({
+          // 1. Save to Supabase Auth metadata
+          const { error: authError } = await supabase.auth.updateUser({
             data: {
               display_name: displayName,
               field_of_study: fieldOfStudy,
@@ -124,7 +158,19 @@ function Profile() {
               avatar_url: avatarUrl,
             },
           });
-          if (error) throw error;
+          if (authError) throw authError;
+
+          // 2. Save to Supabase Profiles DB Table
+          const { error: dbError } = await supabase.from("profiles").upsert({
+            id: user.id,
+            display_name: displayName,
+            avatar_url: avatarUrl,
+            updated_at: new Date().toISOString()
+          });
+          if (dbError) {
+            console.warn("Could not save to profiles DB table, falling back to Auth metadata:", dbError.message);
+          }
+          
           toast.success("Profile updated successfully!");
         }
       }

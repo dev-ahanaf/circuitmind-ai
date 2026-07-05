@@ -11,7 +11,7 @@ function HistoryPage() {
   const [items, setItems] = useState<HistoryItem[]>([]);
 
   useEffect(() => {
-    setItems(getHistory());
+    getHistory().then(setItems);
   }, []);
 
   const handleOpen = (item: HistoryItem) => {
