@@ -623,5 +623,86 @@ The NE555 timer operates by charging and discharging the 10uF capacitor through 
     { "from": "LED1:cathode", "to": "B1:GND" }
   ]
 }
+\`\`\``,
+  "drone": `## Project Overview
+This project details the basic architecture of a **Mini Quadcopter** flight controller using an STM32 ARM Cortex-M3 (Blue Pill) board, an MPU6050 6-axis Gyroscope/Accelerometer inertial measurement unit (IMU), four Electronic Speed Controllers (ESCs), and four Brushless DC Motors.
+
+**Difficulty:** Advanced
+**Estimated Cost:** ৳9200 BDT
+**Time to build:** 15 hours
+
+## Required Components
+| Component | Qty | Purpose | Approx. Price (BDT) |
+| --- | --- | --- | --- |
+| STM32 Blue Pill Board | 1 | Flight Controller MCU | ৳450 |
+| MPU6050 IMU Module | 1 | Attitude stabilization | ৳250 |
+| 20A Brushless ESC | 4 | Brushless motor speed drivers | ৳3200 |
+| 2204 Brushless Motor | 4 | Propulsion actuators | ৳4500 |
+| 3S 1500mAh LiPo Battery| 1 | High-current power pack | ৳800 |
+
+## Wiring Connections
+| From (MCU/Driver) | To (Component pin) | Notes |
+| --- | --- | --- |
+| STM32 PB6 (I2C1_SCL) | MPU6050:SCL | I2C Clock connection |
+| STM32 PB7 (I2C1_SDA) | MPU6050:SDA | I2C Data connection |
+| STM32 PA0 (PWM) | ESC 1:Signal | Front-Left motor throttle |
+| STM32 PA1 (PWM) | ESC 2:Signal | Front-Right motor throttle |
+| STM32 PA2 (PWM) | ESC 3:Signal | Back-Left motor throttle |
+| STM32 PA3 (PWM) | ESC 4:Signal | Back-Right motor throttle |
+
+## Circuit Explanation
+The MPU6050 readings feed into a Proportional-Integral-Derivative (PID) loop running on the STM32 microcontroller. The PID algorithm computes yaw, pitch, and roll error correction and modulates the PWM throttle outputs sent to the four ESCs. This stabilizes the quadcopter body automatically in mid-air.
+
+## Arduino / MCU Code
+\`\`\`cpp
+// STM32 Quadcopter PID Stabilization Stub
+#include <Wire.h>
+
+const int escPin1 = PA0;
+const int escPin2 = PA1;
+const int escPin3 = PA2;
+const int escPin4 = PA3;
+
+void setup() {
+  Wire.begin();
+  // Initialize MPU6050 gyro registers
+  pinMode(escPin1, OUTPUT);
+  pinMode(escPin2, OUTPUT);
+  pinMode(escPin3, OUTPUT);
+  pinMode(escPin4, OUTPUT);
+}
+
+void loop() {
+  // Read gyro accelerometer values
+  // Run PID calculation loops
+  // Adjust PWM throttle values
+  delay(4); // 250Hz Refresh Rate
+}
+\`\`\`
+
+## Circuit JSON
+\`\`\`json
+{
+  "project": {
+    "title": "Mini Quadcopter Flight Controller",
+    "description": "STM32 Blue Pill reading MPU6050 IMU signals to drive four speed controllers."
+  },
+  "components": [
+    { "id": "U1", "type": "STM32", "label": "STM32 MCU", "x": 300, "y": 250 },
+    { "id": "IMU1", "type": "OLED", "label": "MPU6050 IMU", "x": 100, "y": 250 },
+    { "id": "ESC1", "type": "L298N", "label": "ESC FL", "x": 600, "y": 80 },
+    { "id": "ESC2", "type": "L298N", "label": "ESC FR", "x": 600, "y": 180 },
+    { "id": "ESC3", "type": "L298N", "label": "ESC BL", "x": 600, "y": 320 },
+    { "id": "ESC4", "type": "L298N", "label": "ESC BR", "x": 600, "y": 420 }
+  ],
+  "connections": [
+    { "from": "U1:PB6", "to": "IMU1:SCL" },
+    { "from": "U1:PB7", "to": "IMU1:SDA" },
+    { "from": "U1:PA0", "to": "ESC1:IN" },
+    { "from": "U1:PA1", "to": "ESC2:IN" },
+    { "from": "U1:PA2", "to": "ESC3:IN" },
+    { "from": "U1:PA3", "to": "ESC4:IN" }
+  ]
+}
 \`\`\``
-};
+}
